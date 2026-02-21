@@ -1,17 +1,18 @@
+// ── EU-THETA operational zone: Mediterranean basin ──────────────────────
 export const DRONES = [
-  { id: 'ZS-01', lat: 36.20, lng: -118.40, status: 'deployed', battery: 78,  mission: 'SEED-ZONE-A' },
-  { id: 'ZS-02', lat: 35.80, lng: -119.10, status: 'deployed', battery: 65,  mission: 'SEED-ZONE-B' },
-  { id: 'ZS-03', lat: 36.80, lng: -118.80, status: 'standby',  battery: 100, mission: 'STANDBY' },
-  { id: 'ZS-04', lat: 36.50, lng: -117.90, status: 'warning',  battery: 22,  mission: 'RTB' },
-  { id: 'ZS-05', lat: 35.50, lng: -119.50, status: 'standby',  battery: 95,  mission: 'STANDBY' },
-  { id: 'ZS-06', lat: 37.10, lng: -119.20, status: 'deployed', battery: 84,  mission: 'PATROL-NORTH' },
-  { id: 'ZS-07', lat: 35.20, lng: -118.00, status: 'standby',  battery: 91,  mission: 'STANDBY' },
+  { id: 'ZS-01', lat: 38.20, lng:  23.70, status: 'deployed', battery: 78, mission: 'SEED-ZONE-ALPHA' },
+  { id: 'ZS-02', lat: 39.47, lng:  -0.38, status: 'deployed', battery: 65, mission: 'SEED-ZONE-BETA'  },
+  { id: 'ZS-03', lat: 42.10, lng:   2.60, status: 'standby',  battery: 100,mission: 'STANDBY'        },
+  { id: 'ZS-04', lat: 43.40, lng:   5.20, status: 'warning',  battery: 22, mission: 'RTB'             },
+  { id: 'ZS-05', lat: 37.70, lng:  -7.10, status: 'standby',  battery: 95, mission: 'STANDBY'        },
+  { id: 'ZS-06', lat: 38.60, lng:  23.80, status: 'deployed', battery: 84, mission: 'PATROL-AEGEAN'   },
+  { id: 'ZS-07', lat: 37.90, lng:  22.40, status: 'standby',  battery: 91, mission: 'STANDBY'        },
 ];
 
 export const THREATS = [
-  { id: 'STRK-009', lat: 36.20, lng: -118.40, probability: 91, radiusKm: 42, level: 'critical' },
-  { id: 'STRK-007', lat: 35.80, lng: -119.10, probability: 67, radiusKm: 34, level: 'warning' },
-  { id: 'WTHR-027', lat: 36.50, lng: -117.90, probability: 48, radiusKm: 28, level: 'watch' },
+  { id: 'STRK-009', lat: 38.05, lng: 23.85, probability: 91, radiusKm: 42, level: 'critical' }, // Attica / Athens
+  { id: 'STRK-007', lat: 39.47, lng: -0.50, probability: 67, radiusKm: 34, level: 'warning'  }, // Valencia coast
+  { id: 'WTHR-027', lat: 43.53, lng:  5.45, probability: 48, radiusKm: 28, level: 'watch'    }, // Provence
 ];
 
 // Seeding radius per deployed drone (km)

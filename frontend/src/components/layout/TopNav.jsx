@@ -15,7 +15,7 @@ export default function TopNav() {
 
       {/* Screen navigation */}
       <nav className="top-nav-links">
-        <NavLink to="/"      end className={({ isActive }) => `top-nav-link${isActive ? ' active' : ''}`}>Dashboard</NavLink>
+        <NavLink to="/dashboard" end className={({ isActive }) => `top-nav-link${isActive ? ' active' : ''}`}>Dashboard</NavLink>
         <NavLink to="/fleet"     className={({ isActive }) => `top-nav-link${isActive ? ' active' : ''}`}>Fleet</NavLink>
         <NavLink to="/predictions" className={({ isActive }) => `top-nav-link${isActive ? ' active' : ''}`}>Predictions</NavLink>
       </nav>

@@ -13,10 +13,10 @@ import {
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 // GeoJSON layer style definitions
-const THREAT_FILL  = { id: 'threat-fill',  type: 'fill', paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.13 } };
-const THREAT_LINE  = { id: 'threat-line',  type: 'line', paint: { 'line-color': ['get', 'color'], 'line-width': 1.5, 'line-opacity': 0.7 } };
-const COVER_FILL   = { id: 'cover-fill',   type: 'fill', paint: { 'fill-color': '#00e5ff', 'fill-opacity': 0.05 } };
-const COVER_LINE   = { id: 'cover-line',   type: 'line', paint: { 'line-color': '#00e5ff', 'line-width': 1, 'line-opacity': 0.25, 'line-dasharray': [5, 4] } };
+const THREAT_FILL  = { id: 'threat-fill',  type: 'fill', paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.15 } };
+const THREAT_LINE  = { id: 'threat-line',  type: 'line', paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': 0.8 } };
+const COVER_FILL   = { id: 'cover-fill',   type: 'fill', paint: { 'fill-color': '#38bdf8', 'fill-opacity': 0.08 } };
+const COVER_LINE   = { id: 'cover-line',   type: 'line', paint: { 'line-color': '#38bdf8', 'line-width': 1, 'line-opacity': 0.4, 'line-dasharray': [4, 2] } };
 
 const LAYER_META = [
   { key: 'drones',   label: 'DRONES' },
@@ -26,7 +26,7 @@ const LAYER_META = [
 
 export default function TacticalMap() {
   const [layers, setLayers] = useState({ drones: true, threats: true, coverage: true });
-  const [viewState, setViewState] = useState({ longitude: 10, latitude: 20, zoom: 2 });
+  const [viewState, setViewState] = useState({ longitude: 14, latitude: 46, zoom: 4.2 }); // Centered on Europe
 
   const threatGeoJSON   = useMemo(() => buildThreatGeoJSON(THREATS),       []);
   const coverageGeoJSON = useMemo(() => buildCoverageGeoJSON(DRONES), []);
@@ -39,12 +39,12 @@ export default function TacticalMap() {
   const deployedCount = DRONES.filter((d) => d.status === 'deployed').length;
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%', background: '#0b1121' }}>
       <Map
         {...viewState}
         onMove={(e) => setViewState(e.viewState)}
         mapboxAccessToken={TOKEN}
-        mapStyle="mapbox://styles/mapbox/dark-v11"
+        mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
         style={{ width: '100%', height: '100%' }}
         attributionControl={false}
       >

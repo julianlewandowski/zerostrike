@@ -11,17 +11,18 @@
 
 /* Style native zoom controls to match HUD */
 .mapboxgl-ctrl-group {
-  background: rgba(6, 13, 16, 0.88) !important;
-  border: 1px solid var(--cyan-border) !important;
-  border-radius: 0 !important;
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.08) !important;
+  background: rgba(11, 17, 33, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 2px !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(4px);
 }
 
 .mapboxgl-ctrl-group button {
   background-color: transparent !important;
-  border-bottom: 1px solid var(--cyan-border) !important;
-  width: 28px !important;
-  height: 28px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  width: 32px !important;
+  height: 32px !important;
 }
 
 .mapboxgl-ctrl-group button:last-child {
@@ -29,18 +30,18 @@
 }
 
 .mapboxgl-ctrl-icon {
-  filter: invert(75%) sepia(30%) saturate(300%) hue-rotate(160deg) brightness(120%) !important;
+  filter: invert(80%) !important; /* Make icons light grey */
 }
 
 .mapboxgl-ctrl-group button:hover {
-  background-color: rgba(0, 229, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 /* ─── Drone Map Markers ────────────────────────────────────────────── */
 .drone-map-marker {
   position: relative;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,17 +49,18 @@
 }
 
 .drone-map-dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   position: relative;
   z-index: 2;
   transition: transform 0.15s ease;
   flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5); /* Outline for contrast on satellite */
 }
 
 .drone-map-marker:hover .drone-map-dot {
-  transform: scale(1.5);
+  transform: scale(1.4);
 }
 
 .drone-map-ring {
@@ -89,94 +91,100 @@
 
 /* Shared panel style for overlay blocks */
 .map-hud-panel {
-  background: rgba(6, 13, 16, 0.88);
-  border: 1px solid var(--cyan-border);
-  backdrop-filter: blur(6px);
-  padding: 8px 12px;
+  background: rgba(11, 17, 33, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  padding: 10px 14px;
+  border-radius: 2px;
 }
 
 /* Coords — top-left */
 .map-hud-coords {
   position: absolute;
-  top: 14px;
-  left: 14px;
+  top: 16px;
+  left: 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .map-hud-row {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 12px;
 }
 
 .map-hud-label {
-  font-size: 8px;
+  font-size: 9px;
   color: var(--text-dim);
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  min-width: 30px;
+  letter-spacing: 0.1em;
+  min-width: 36px;
+  font-weight: 600;
 }
 
 .map-hud-value {
   font-size: 11px;
-  color: var(--cyan);
-  letter-spacing: 0.06em;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
 }
 
 /* Layer controls — bottom-right */
 .map-layer-controls {
   position: absolute;
-  bottom: 14px;
-  right: 14px;
+  bottom: 16px;
+  right: 16px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  min-width: 116px;
+  gap: 4px;
+  min-width: 130px;
 }
 
 .map-layer-header {
-  font-size: 8px;
+  font-size: 9px;
   color: var(--text-dim);
   text-transform: uppercase;
-  letter-spacing: 0.22em;
-  padding: 0 6px;
-  margin-bottom: 3px;
+  letter-spacing: 0.15em;
+  padding: 0 8px;
+  margin-bottom: 4px;
+  font-weight: 600;
 }
 
 .map-layer-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: none;
   border: none;
-  padding: 5px 8px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
+  padding: 6px 10px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text-secondary);
   cursor: pointer;
   text-align: left;
-  letter-spacing: 0.1em;
-  transition: color 0.12s, background 0.12s;
+  letter-spacing: 0.05em;
+  transition: all 0.15s;
+  border-radius: 2px;
 }
 
 .map-layer-btn:hover {
-  color: var(--text-secondary);
-  background: rgba(0, 229, 255, 0.04);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .map-layer-btn.active {
   color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .map-layer-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
   background: var(--text-dim);
-  transition: box-shadow 0.12s;
+  transition: box-shadow 0.15s, background 0.15s;
 }
 
 .map-layer-btn.active .map-layer-dot.drones   { background: var(--green);  box-shadow: 0 0 6px var(--green); }
@@ -186,17 +194,23 @@
 /* Meta info — bottom-left */
 .map-hud-meta {
   position: absolute;
-  bottom: 14px;
-  left: 14px;
-  font-size: 9px;
-  color: var(--text-dim);
-  letter-spacing: 0.1em;
+  bottom: 16px;
+  left: 16px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  line-height: 1.9;
+  line-height: 1.8;
+  background: rgba(11, 17, 33, 0.6);
+  padding: 8px 12px;
+  border-radius: 2px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .map-hud-meta .highlight {
   color: var(--cyan);
+  font-weight: 600;
 }
 
 /* ─── Marker Animation ─────────────────────────────────────────────── */
