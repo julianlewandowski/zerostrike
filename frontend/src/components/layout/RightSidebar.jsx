@@ -1,43 +1,35 @@
 import StatusIndicator from '../hud/StatusIndicator';
-
-const THREATS = [
-  {
-    id: 'STRK-009',
-    zone: 'Zone C7 — 36.2°N 118.4°W',
-    probability: '91%',
-    eta: 'ETA 00:18:22',
-    level: 'red',
-  },
-  {
-    id: 'STRK-007',
-    zone: 'Zone D3 — 35.8°N 119.1°W',
-    probability: '67%',
-    eta: 'ETA 00:41:05',
-    level: 'orange',
-  },
-  {
-    id: 'WTHR-027',
-    zone: 'Zone A  — 36.5°N 117.9°W',
-    probability: '48%',
-    eta: 'MONITORING',
-    level: 'orange',
-  },
-];
+import { useData } from '../../context/DataContext';
 
 const EVENTS = [
-  { id: 1, time: '14:23:01', code: 'STRK-009', level: 'critical', msg: 'Dry lightning detected — Zone C7, probability 91%, dispatch recommended' },
-  { id: 2, time: '14:21:44', code: 'DPLT-014', level: 'info',     msg: 'ZS-02 deployed to Zone B seeding coordinates' },
-  { id: 3, time: '14:19:30', code: 'WTHR-027', level: 'warning',  msg: 'Humidity drop to 8% — Zone A approaching fire weather threshold' },
-  { id: 4, time: '14:17:12', code: 'SEED-013', level: 'info',     msg: 'ZS-01 seeding complete — Zone A mission success' },
-  { id: 5, time: '14:14:55', code: 'STRK-008', level: 'info',     msg: 'Storm cell dissipated — Zone A neutralized' },
-  { id: 6, time: '14:11:03', code: 'BATT-004', level: 'warning',  msg: 'ZS-04 battery critical (22%) — auto RTB initiated' },
-  { id: 7, time: '14:08:29', code: 'STRK-007', level: 'warning',  msg: 'Lightning risk elevated — Zone D3, monitoring' },
-  { id: 8, time: '14:05:51', code: 'DPLT-013', level: 'info',     msg: 'ZS-06 assigned patrol — Sector North' },
-  { id: 9, time: '14:03:17', code: 'SENS-102', level: 'info',     msg: 'Sensor grid refresh — 142 active nodes confirmed' },
-  { id: 10, time: '13:58:44', code: 'PRED-031', level: 'warning', msg: 'Storm cluster forming — Sector North watch advisory' },
+  { id: 1,  time: '14:23:01', code: 'STRK-009', level: 'critical', msg: 'Dry lightning detected — Attica, probability 91%, dispatch recommended' },
+  { id: 2,  time: '14:21:44', code: 'DPLT-014', level: 'info',     msg: 'ZS-02 deployed to Valencia seeding coordinates' },
+  { id: 3,  time: '14:19:30', code: 'WTHR-027', level: 'warning',  msg: 'Humidity drop to 8% — Provence approaching fire weather threshold' },
+  { id: 4,  time: '14:17:12', code: 'SEED-013', level: 'info',     msg: 'ZS-01 seeding complete — Zone Alpha mission success' },
+  { id: 5,  time: '14:14:55', code: 'STRK-008', level: 'info',     msg: 'Storm cell dissipated — Zone Alpha neutralized' },
+  { id: 6,  time: '14:11:03', code: 'BATT-004', level: 'warning',  msg: 'ZS-04 battery critical (22%) — auto RTB initiated' },
+  { id: 7,  time: '14:08:29', code: 'STRK-007', level: 'warning',  msg: 'Lightning risk elevated — Valencia coast, monitoring' },
+  { id: 8,  time: '14:05:51', code: 'DPLT-013', level: 'info',     msg: 'ZS-06 assigned patrol — Aegean sector' },
+  { id: 9,  time: '14:03:17', code: 'SENS-102', level: 'info',     msg: 'Sensor grid refresh — 142 active nodes confirmed' },
+  { id: 10, time: '13:58:44', code: 'PRED-031', level: 'warning',  msg: 'Storm cluster forming — Sardinia watch advisory' },
 ];
 
+function formatEta(etaMin) {
+  if (etaMin == null) return 'MONITORING';
+  const h = Math.floor(etaMin / 60).toString().padStart(2, '0');
+  const m = (etaMin % 60).toString().padStart(2, '0');
+  return `ETA ${h}:${m}:00`;
+}
+
+function formatCoord(lat, lng) {
+  const latStr = `${Math.abs(lat).toFixed(1)}°${lat >= 0 ? 'N' : 'S'}`;
+  const lngStr = `${Math.abs(lng).toFixed(1)}°${lng >= 0 ? 'E' : 'W'}`;
+  return `${latStr} ${lngStr}`;
+}
+
 export default function RightSidebar() {
+  const { threats } = useData();
+
   return (
     <aside className="right-sidebar">
       {/* Active Threats */}
@@ -45,19 +37,22 @@ export default function RightSidebar() {
         <div className="panel-header">
           <StatusIndicator status="critical" />
           Active Threats
-          <span className="panel-header-label">3 DETECTED</span>
+          <span className="panel-header-label">{threats.length} DETECTED</span>
         </div>
         <div className="sidebar-section-body" style={{ gap: 6 }}>
-          {THREATS.map((t) => (
-            <div key={t.id} className={`threat-card ${t.level === 'orange' ? 'orange' : ''}`}>
-              <div className="threat-card-header">
-                <span className="threat-id">{t.id}</span>
-                <span className="threat-probability">{t.probability}</span>
+          {threats.map((t) => {
+            const isOrange = t.level !== 'critical';
+            return (
+              <div key={t.id} className={`threat-card ${isOrange ? 'orange' : ''}`}>
+                <div className="threat-card-header">
+                  <span className="threat-id">{t.id}</span>
+                  <span className="threat-probability">{t.probability}%</span>
+                </div>
+                <div className="threat-location">{formatCoord(t.lat, t.lng)}</div>
+                <div className="threat-eta">{formatEta(t.etaMin)}</div>
               </div>
-              <div className="threat-location">{t.zone}</div>
-              <div className="threat-eta">{t.eta}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

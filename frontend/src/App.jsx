@@ -7,6 +7,7 @@ import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Fleet from './pages/Fleet';
 import Predictions from './pages/Predictions';
+import { DataProvider } from './context/DataContext';
 
 /** Shared chrome for all command-center screens */
 function CommandShell() {
@@ -26,7 +27,7 @@ export default function App() {
       <CustomCursor />
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route element={<CommandShell />}>
+        <Route element={<DataProvider><CommandShell /></DataProvider>}>
           <Route path="/dashboard"   element={<Dashboard />} />
           <Route path="/fleet"       element={<Fleet />} />
           <Route path="/predictions" element={<Predictions />} />

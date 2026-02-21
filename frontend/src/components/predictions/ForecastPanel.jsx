@@ -3,14 +3,9 @@ import {
   CartesianGrid, XAxis, YAxis,
   Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
-import { FORECAST_24H, MODEL_STATS } from '../../data/predictionData';
+import { useData } from '../../context/DataContext';
 
-const THREAT_LINES = [
-  { key: 'STRK-009', color: '#ff2020' },
-  { key: 'STRK-010', color: '#ff6a00' },
-  { key: 'STRK-007', color: '#e6c20a' },
-  { key: 'STRK-004', color: '#00aabf' },
-];
+const THREAT_COLORS = ['#ff2020', '#ff6a00', '#e6c20a', '#00aabf'];
 
 const AXIS_TICK = { fill: '#3a5a68', fontSize: 8, fontFamily: 'var(--font-mono)' };
 
@@ -37,6 +32,16 @@ function ForecastTooltip({ active, payload, label }) {
 }
 
 export default function ForecastPanel() {
+  const { forecast, modelStats } = useData();
+
+  // Derive top-4 threat keys from the forecast data (keys other than h/label)
+  const threatLines = forecast.length > 0
+    ? Object.keys(forecast[0])
+        .filter((k) => k !== 'h' && k !== 'label')
+        .slice(0, 4)
+        .map((key, i) => ({ key, color: THREAT_COLORS[i] ?? '#94a3b8' }))
+    : [];
+
   return (
     <div className="forecast-panel">
       {/* 24h forecast chart */}
@@ -44,7 +49,7 @@ export default function ForecastPanel() {
         <div className="forecast-section-title">24H Probability Forecast</div>
 
         <div className="forecast-legend">
-          {THREAT_LINES.map(({ key, color }) => (
+          {threatLines.map(({ key, color }) => (
             <div key={key} className="forecast-legend-item">
               <div className="forecast-legend-dot" style={{ background: color, boxShadow: `0 0 4px ${color}` }} />
               {key}
@@ -53,7 +58,7 @@ export default function ForecastPanel() {
         </div>
 
         <ResponsiveContainer width="100%" height={160}>
-          <LineChart data={FORECAST_24H} margin={{ top: 4, right: 4, bottom: 0, left: -14 }}>
+          <LineChart data={forecast} margin={{ top: 4, right: 4, bottom: 0, left: -14 }}>
             <CartesianGrid stroke="rgba(0,229,255,0.05)" strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="label"
@@ -70,7 +75,7 @@ export default function ForecastPanel() {
             <ReferenceLine y={70} stroke="rgba(255,106,0,0.2)" strokeDasharray="4 4" />
             <ReferenceLine y={85} stroke="rgba(255,32,32,0.2)"  strokeDasharray="4 4" />
             <Tooltip content={<ForecastTooltip />} />
-            {THREAT_LINES.map(({ key, color }) => (
+            {threatLines.map(({ key, color }) => (
               <Line
                 key={key}
                 type="monotone"
@@ -121,12 +126,12 @@ export default function ForecastPanel() {
         <div className="forecast-section-title">Model Performance</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {[
-            { label: '24h Accuracy',   value: `${MODEL_STATS.accuracy24h}%`, className: 'green' },
-            { label: 'False Positive', value: `${MODEL_STATS.falsePositive}%`, className: '' },
-            { label: 'Total Preds',    value: MODEL_STATS.totalPredictions,    className: 'cyan' },
-            { label: 'Data Points',    value: MODEL_STATS.dataPoints,           className: '' },
-            { label: 'Version',        value: MODEL_STATS.version,              className: 'cyan' },
-            { label: 'Last Trained',   value: MODEL_STATS.lastTrained,          className: '' },
+            { label: '24h Accuracy',   value: `${modelStats.accuracy24h}%`,      className: 'green' },
+            { label: 'False Positive', value: `${modelStats.falsePositive}%`,    className: '' },
+            { label: 'Total Preds',    value: modelStats.totalPredictions,        className: 'cyan' },
+            { label: 'Data Points',    value: modelStats.dataPoints,              className: '' },
+            { label: 'Version',        value: modelStats.version,                 className: 'cyan' },
+            { label: 'Last Trained',   value: modelStats.lastTrained,             className: '' },
           ].map(({ label, value, className }) => (
             <div key={label} className="model-stat-row">
               <span className="model-stat-label">{label}</span>

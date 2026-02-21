@@ -1,8 +1,17 @@
 import { NavLink } from 'react-router-dom';
 import StatusIndicator from '../hud/StatusIndicator';
 import SystemClock from '../hud/SystemClock';
+import { useData } from '../../context/DataContext';
 
 export default function TopNav() {
+  const { fleet, threats } = useData();
+
+  const deployedCount = fleet.filter((d) => d.status === 'deployed').length;
+  const activeThreats = threats.filter(
+    (t) => t.level === 'critical' || t.level === 'warning',
+  ).length;
+  const alertCount    = threats.filter((t) => t.level === 'critical').length;
+
   return (
     <header className="top-nav">
       {/* Logo */}
@@ -30,11 +39,22 @@ export default function TopNav() {
         </div>
         <div className="top-nav-status-item">
           <StatusIndicator status="online" />
-          <span className="top-nav-status-pair"><span>DRONES</span> <span className="top-nav-status-value">7 / 9</span></span>
+          <span className="top-nav-status-pair">
+            <span>DRONES</span>
+            <span className="top-nav-status-value">{deployedCount} / {fleet.length}</span>
+          </span>
         </div>
         <div className="top-nav-status-item">
-          <StatusIndicator status="warning" />
-          <span className="top-nav-status-pair"><span>THREATS</span> <span className="top-nav-status-value" style={{ color: 'var(--orange)' }}>3 ACTIVE</span></span>
+          <StatusIndicator status={activeThreats > 0 ? 'warning' : 'online'} />
+          <span className="top-nav-status-pair">
+            <span>THREATS</span>
+            <span
+              className="top-nav-status-value"
+              style={{ color: activeThreats > 0 ? 'var(--orange)' : undefined }}
+            >
+              {activeThreats} ACTIVE
+            </span>
+          </span>
         </div>
         <div className="top-nav-status-item">
           <StatusIndicator status="online" />
@@ -49,8 +69,8 @@ export default function TopNav() {
       {/* Right cluster */}
       <div className="top-nav-right">
         <div className="alert-badge">
-          <StatusIndicator status="warning" />
-          3 ALERTS
+          <StatusIndicator status={alertCount > 0 ? 'warning' : 'online'} />
+          {alertCount > 0 ? `${alertCount} ALERT${alertCount > 1 ? 'S' : ''}` : 'NO ALERTS'}
         </div>
         <div className="top-nav-divider" />
         <SystemClock />

@@ -10,9 +10,9 @@ export const DRONES = [
 ];
 
 export const THREATS = [
-  { id: 'STRK-009', lat: 38.05, lng: 23.85, probability: 91, radiusKm: 42, level: 'critical' }, // Attica / Athens
-  { id: 'STRK-007', lat: 39.47, lng: -0.50, probability: 67, radiusKm: 34, level: 'warning'  }, // Valencia coast
-  { id: 'WTHR-027', lat: 43.53, lng:  5.45, probability: 48, radiusKm: 28, level: 'watch'    }, // Provence
+  { id: 'STRK-009', lat: 38.05, lng: 23.85, probability: 91, radiusKm: 42, level: 'critical', heading: 220, speedKmh: 18, etaMin: 18 }, // Attica / Athens
+  { id: 'STRK-007', lat: 39.47, lng: -0.50, probability: 67, radiusKm: 34, level: 'warning',  heading: 155, speedKmh: 12, etaMin: 41 }, // Valencia coast
+  { id: 'WTHR-027', lat: 43.53, lng:  5.45, probability: 48, radiusKm: 28, level: 'watch',    heading: 190, speedKmh:  8, etaMin: 73 }, // Provence
 ];
 
 // Seeding radius per deployed drone (km)

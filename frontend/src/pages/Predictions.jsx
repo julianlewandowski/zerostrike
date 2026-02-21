@@ -3,7 +3,7 @@ import '../styles/predictions.css';
 import StatusIndicator from '../components/hud/StatusIndicator';
 import PredictionTable from '../components/predictions/PredictionTable';
 import ForecastPanel from '../components/predictions/ForecastPanel';
-import { PREDICTIONS } from '../data/predictionData';
+import { useData } from '../context/DataContext';
 
 const RISK_FILTERS = [
   { key: 'all',      label: 'ALL' },
@@ -21,6 +21,7 @@ const STATUS_FILTERS = [
 ];
 
 export default function Predictions() {
+  const { predictions } = useData();
   const [riskFilter,   setRiskFilter]   = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortKey,      setSortKey]      = useState('prob');
@@ -32,20 +33,20 @@ export default function Predictions() {
   };
 
   const filtered = useMemo(() => {
-    return PREDICTIONS
+    return predictions
       .filter((p) => riskFilter === 'all'   || p.risk   === riskFilter)
       .filter((p) => statusFilter === 'all' || p.status === statusFilter)
       .sort((a, b) => {
         const mult = sortDir === 'asc' ? 1 : -1;
         return mult * (a[sortKey] < b[sortKey] ? -1 : a[sortKey] > b[sortKey] ? 1 : 0);
       });
-  }, [riskFilter, statusFilter, sortKey, sortDir]);
+  }, [predictions, riskFilter, statusFilter, sortKey, sortDir]);
 
   // Aggregate stats
-  const critical    = PREDICTIONS.filter((p) => p.risk === 'critical' && p.status !== 'neutralized').length;
-  const dispatching = PREDICTIONS.filter((p) => p.status === 'dispatching').length;
-  const neutralized = PREDICTIONS.filter((p) => p.status === 'neutralized').length;
-  const dispatchRec = PREDICTIONS.filter((p) => p.recommendation === 'DISPATCH' && p.status === 'active').length;
+  const critical    = predictions.filter((p) => p.risk === 'critical' && p.status !== 'neutralized').length;
+  const dispatching = predictions.filter((p) => p.status === 'dispatching').length;
+  const neutralized = predictions.filter((p) => p.status === 'neutralized').length;
+  const dispatchRec = predictions.filter((p) => p.recommendation === 'DISPATCH' && p.status === 'active').length;
 
   return (
     <div className="predictions-page">
@@ -59,7 +60,7 @@ export default function Predictions() {
 
         <div className="pred-stat-group">
           <div className="pred-stat">
-            <span className="pred-stat-value">{PREDICTIONS.length}</span>
+            <span className="pred-stat-value">{predictions.length}</span>
             <span className="pred-stat-label">Total Events</span>
           </div>
           <div className="pred-stat">

@@ -3,7 +3,7 @@ import '../styles/fleet.css';
 import StatusIndicator from '../components/hud/StatusIndicator';
 import DroneCard from '../components/fleet/DroneCard';
 import DroneDetailPanel from '../components/fleet/DroneDetailPanel';
-import { DRONES_DETAIL } from '../data/droneData';
+import { useData } from '../context/DataContext';
 
 const FILTERS = [
   { key: 'all',      label: 'ALL' },
@@ -13,17 +13,20 @@ const FILTERS = [
 ];
 
 export default function Fleet() {
-  const [filter, setFilter]   = useState('all');
+  const { fleet } = useData();
+  const [filter,   setFilter]   = useState('all');
   const [selected, setSelected] = useState(null);
 
   const filtered = filter === 'all'
-    ? DRONES_DETAIL
-    : DRONES_DETAIL.filter((d) => d.status === filter);
+    ? fleet
+    : fleet.filter((d) => d.status === filter);
 
-  const deployed  = DRONES_DETAIL.filter((d) => d.status === 'deployed').length;
-  const standby   = DRONES_DETAIL.filter((d) => d.status === 'standby').length;
-  const warning   = DRONES_DETAIL.filter((d) => d.status === 'warning').length;
-  const avgBatt   = Math.round(DRONES_DETAIL.reduce((s, d) => s + d.battery, 0) / DRONES_DETAIL.length);
+  const deployed  = fleet.filter((d) => d.status === 'deployed').length;
+  const standby   = fleet.filter((d) => d.status === 'standby').length;
+  const warning   = fleet.filter((d) => d.status === 'warning').length;
+  const avgBatt   = fleet.length
+    ? Math.round(fleet.reduce((s, d) => s + d.battery, 0) / fleet.length)
+    : 0;
 
   function handleCardClick(drone) {
     setSelected(selected?.id === drone.id ? null : drone);
@@ -40,7 +43,7 @@ export default function Fleet() {
 
         <div className="fleet-stat-group">
           <div className="fleet-stat">
-            <span className="fleet-stat-value">{DRONES_DETAIL.length}</span>
+            <span className="fleet-stat-value">{fleet.length}</span>
             <span className="fleet-stat-label">Total</span>
           </div>
           <div className="fleet-stat">
@@ -67,8 +70,8 @@ export default function Fleet() {
         <div className="fleet-filters">
           {FILTERS.map(({ key, label }) => {
             const count = key === 'all'
-              ? DRONES_DETAIL.length
-              : DRONES_DETAIL.filter((d) => d.status === key).length;
+              ? fleet.length
+              : fleet.filter((d) => d.status === key).length;
             return (
               <button
                 key={key}

@@ -209,9 +209,11 @@
   transition: box-shadow 0.15s, background 0.15s;
 }
 
-.map-layer-btn.active .map-layer-dot.drones   { background: var(--green);  box-shadow: 0 0 6px var(--green); }
-.map-layer-btn.active .map-layer-dot.threats  { background: var(--red);    box-shadow: 0 0 6px var(--red); }
-.map-layer-btn.active .map-layer-dot.coverage { background: var(--cyan);   box-shadow: 0 0 6px var(--cyan); }
+.map-layer-btn.active .map-layer-dot.drones     { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+.map-layer-btn.active .map-layer-dot.threats   { background: var(--red);    box-shadow: 0 0 6px var(--red); }
+.map-layer-btn.active .map-layer-dot.coverage  { background: var(--cyan);   box-shadow: 0 0 6px var(--cyan); }
+.map-layer-btn.active .map-layer-dot.landRisk  { background: #ff6a00;       box-shadow: 0 0 6px #ff6a00; }
+.map-layer-btn.active .map-layer-dot.collisions{ background: #ff2244;       box-shadow: 0 0 6px #ff2244; }
 
 /* Meta info — bottom-left */
 .map-hud-meta {
@@ -235,9 +237,46 @@
   font-weight: 600;
 }
 
+/* ─── Collision Alert Badge ────────────────────────────────────────── */
+.map-collision-alert {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 34, 68, 0.15);
+  border: 1px solid rgba(255, 34, 68, 0.6);
+  backdrop-filter: blur(8px);
+  padding: 6px 16px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-family: var(--font-ui);
+  letter-spacing: 0.12em;
+  color: #ff4466;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: collision-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.map-collision-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff2244;
+  box-shadow: 0 0 6px #ff2244;
+  flex-shrink: 0;
+}
+
 /* ─── Marker Animation ─────────────────────────────────────────────── */
 @keyframes ring-expand {
   0%   { transform: scale(1);   opacity: 0.6; }
   70%  { transform: scale(2.8); opacity: 0; }
   100% { transform: scale(2.8); opacity: 0; }
+}
+
+@keyframes collision-pulse {
+  0%, 100% { opacity: 0.85; box-shadow: 0 0 8px rgba(255, 34, 68, 0.3); }
+  50%       { opacity: 1;    box-shadow: 0 0 18px rgba(255, 34, 68, 0.7); }
 }

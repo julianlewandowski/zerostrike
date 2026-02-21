@@ -1,14 +1,5 @@
 import StatusIndicator from '../hud/StatusIndicator';
-
-const DRONES = [
-  { id: 'ZS-01', status: 'deployed', battery: 78,  mission: 'SEED-ZONE-A' },
-  { id: 'ZS-02', status: 'deployed', battery: 65,  mission: 'SEED-ZONE-B' },
-  { id: 'ZS-03', status: 'standby',  battery: 100, mission: 'STANDBY' },
-  { id: 'ZS-04', status: 'warning',  battery: 22,  mission: 'RTB — LOW BATT' },
-  { id: 'ZS-05', status: 'standby',  battery: 95,  mission: 'STANDBY' },
-  { id: 'ZS-06', status: 'deployed', battery: 84,  mission: 'PATROL-NORTH' },
-  { id: 'ZS-07', status: 'standby',  battery: 91,  mission: 'STANDBY' },
-];
+import { useData } from '../../context/DataContext';
 
 const DOT_STATUS = {
   deployed: 'online',
@@ -24,6 +15,8 @@ function batteryColor(pct) {
 }
 
 export default function LeftSidebar() {
+  const { fleet } = useData();
+
   return (
     <aside className="left-sidebar">
       {/* System Health */}
@@ -39,7 +32,9 @@ export default function LeftSidebar() {
           </div>
           <div className="metric-row">
             <span className="metric-label">Drone Uplink</span>
-            <span className="metric-value cyan">7 / 9 ACTIVE</span>
+            <span className="metric-value cyan">
+              {fleet.filter((d) => d.status !== 'standby').length} / {fleet.length} ACTIVE
+            </span>
           </div>
           <div className="metric-row">
             <span className="metric-label">Sensor Grid</span>
@@ -61,12 +56,12 @@ export default function LeftSidebar() {
         <div className="panel-header">
           <StatusIndicator status="online" />
           Drone Fleet
-          <span className="panel-header-label">7 UNITS</span>
+          <span className="panel-header-label">{fleet.length} UNITS</span>
         </div>
         <div className="drone-list">
-          {DRONES.map((drone) => (
+          {fleet.map((drone) => (
             <div key={drone.id} className={`drone-card ${drone.status}`}>
-              <StatusIndicator status={DOT_STATUS[drone.status]} />
+              <StatusIndicator status={DOT_STATUS[drone.status] ?? 'offline'} />
               <div className="drone-card-meta">
                 <div className="drone-card-row">
                   <span className="drone-id">{drone.id}</span>
