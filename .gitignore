@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output
+frontend/dist/
+backend/lib/
+
+# Firebase
+.firebase/
+*-debug.log
+*.log
+
+# Environment (never commit real keys)
+.env
+.env.local
+.env.*.local
+**/.env
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tgz
+.cache/
