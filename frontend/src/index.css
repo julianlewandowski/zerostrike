@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 7%;
+    --foreground: 210 20% 92%;
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 92%;
+    --popover: 220 18% 10%;
+    --popover-foreground: 210 20% 92%;
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 210 20% 85%;
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 12% 50%;
+    --accent: 160 60% 45%;
+    --accent-foreground: 160 80% 95%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 24 95% 53%;
+    --radius: 0.75rem;
+    --fire: 15 85% 50%;
+    --fire-glow: 24 100% 60%;
+    --ember: 8 80% 40%;
+    --smoke: 220 10% 30%;
+    --optimized: 160 60% 45%;
+    --optimized-glow: 160 70% 55%;
+    --saved: 145 60% 42%;
+    --danger: 0 72% 51%;
+    --danger-glow: 0 80% 60%;
+    --surface-elevated: 220 16% 13%;
+    --metric-bg: 220 18% 9%;
+    --font-display: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+  .text-gradient-fire {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--fire)) 0%, hsl(var(--fire-glow)) 50%, hsl(var(--primary)) 100%);
+  }
+  .text-gradient-optimized {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(var(--optimized)) 0%, hsl(var(--optimized-glow)) 100%);
+  }
+  .glow-fire {
+    box-shadow: 0 0 30px -5px hsl(var(--fire) / 0.4), 0 0 60px -10px hsl(var(--fire-glow) / 0.2);
+  }
+  .glow-optimized {
+    box-shadow: 0 0 30px -5px hsl(var(--optimized) / 0.3), 0 0 60px -10px hsl(var(--optimized-glow) / 0.15);
+  }
+  .glow-danger {
+    box-shadow: 0 0 20px -5px hsl(var(--danger) / 0.5);
+  }
+  .surface-elevated {
+    background-color: hsl(var(--surface-elevated));
+  }
+  .metric-bg {
+    background-color: hsl(var(--metric-bg));
+  }
+  .border-glow-fire {
+    border-color: hsl(var(--fire) / 0.3);
+  }
+  .border-glow-optimized {
+    border-color: hsl(var(--optimized) / 0.3);
+  }
+}
