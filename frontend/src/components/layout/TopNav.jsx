@@ -26,28 +26,23 @@ export default function TopNav() {
       <div className="top-nav-status-group">
         <div className="top-nav-status-item">
           <StatusIndicator status="online" />
-          <span>SYS</span>
-          <span className="top-nav-status-value">NOMINAL</span>
+          <span className="top-nav-status-pair"><span>SYS</span> <span className="top-nav-status-value">NOMINAL</span></span>
         </div>
         <div className="top-nav-status-item">
           <StatusIndicator status="online" />
-          <span>DRONES</span>
-          <span className="top-nav-status-value">7 / 9</span>
+          <span className="top-nav-status-pair"><span>DRONES</span> <span className="top-nav-status-value">7 / 9</span></span>
         </div>
         <div className="top-nav-status-item">
           <StatusIndicator status="warning" />
-          <span>THREATS</span>
-          <span className="top-nav-status-value" style={{ color: 'var(--orange)' }}>3 ACTIVE</span>
+          <span className="top-nav-status-pair"><span>THREATS</span> <span className="top-nav-status-value" style={{ color: 'var(--orange)' }}>3 ACTIVE</span></span>
         </div>
         <div className="top-nav-status-item">
           <StatusIndicator status="online" />
-          <span>COVERAGE</span>
-          <span className="top-nav-status-value">94.2%</span>
+          <span className="top-nav-status-pair"><span>COVERAGE</span> <span className="top-nav-status-value">94.2%</span></span>
         </div>
         <div className="top-nav-status-item">
           <StatusIndicator status="online" />
-          <span>PRED MODEL</span>
-          <span className="top-nav-status-value">ONLINE</span>
+          <span className="top-nav-status-pair"><span>PRED MODEL</span> <span className="top-nav-status-value">ONLINE</span></span>
         </div>
       </div>
 

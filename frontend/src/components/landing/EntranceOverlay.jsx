@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const BOOT_LINES = [
@@ -20,12 +20,8 @@ export default function EntranceOverlay() {
   const [progress, setProgress] = useState(0);
   const [exiting, setExiting] = useState(false);
   const navigate = useNavigate();
-  const startedRef = useRef(false);
 
   useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-
     const timers = [];
 
     // Reveal lines one-by-one
@@ -38,7 +34,7 @@ export default function EntranceOverlay() {
     // Show progress bar after first line
     timers.push(setTimeout(() => setShowProgress(true), LINE_INTERVAL * 0.5));
 
-    // Kick progress to 100% (CSS transition handles the animation)
+    // Kick progress to 100% (CSS transition handles the smooth fill)
     timers.push(setTimeout(() => setProgress(100), LINE_INTERVAL * 0.6));
 
     // Begin exit after all lines visible

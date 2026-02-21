@@ -256,6 +256,7 @@ body {
   align-items: center;
   gap: 24px;
   margin-left: auto; /* Push to right */
+  flex-wrap: nowrap;
 }
 
 .top-nav-status-item {
@@ -265,11 +266,21 @@ body {
   font-size: 11px;
   color: var(--text-secondary);
   font-family: var(--font-mono);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.top-nav-status-value {
+.top-nav-status-pair {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.top-nav-status-item .top-nav-status-value {
   color: var(--cyan);
   font-weight: 600;
+  font-size: inherit;
 }
 
 .top-nav-right {

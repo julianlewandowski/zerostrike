@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import EntranceOverlay from '../components/landing/EntranceOverlay';
+import ParallaxBackground from '../components/landing/ParallaxBackground';
 import '../styles/landing.css';
 
 export default function Landing() {
@@ -12,7 +13,7 @@ export default function Landing() {
       {booting && <EntranceOverlay />}
 
       <div className="landing-page">
-        <div className="landing-bg" />
+        <ParallaxBackground />
 
         {/* ── Hero ──────────────────────────────────────────────── */}
         <section className="landing-hero">

@@ -130,6 +130,28 @@
   font-family: var(--font-mono);
 }
 
+/* Mode + Draw controls — top-right (left of zoom control) */
+.map-mode-controls {
+  position: absolute;
+  top: 16px;
+  right: 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
+}
+
+.map-mode-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 0;
+}
+
+.map-layer-btn.active .map-layer-dot.satellites { background: #94a3b8; box-shadow: 0 0 6px #94a3b8; }
+.map-layer-btn.active .map-layer-dot.threed     { background: #818cf8; box-shadow: 0 0 6px #818cf8; }
+.map-layer-btn.active .map-layer-dot.draw       { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+.map-layer-btn .map-layer-dot.reset             { background: var(--text-dim); }
+
 /* Layer controls — bottom-right */
 .map-layer-controls {
   position: absolute;
