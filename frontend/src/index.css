@@ -86,3 +86,25 @@
     border-color: hsl(var(--optimized) / 0.3);
   }
 }
+
+/* Mapbox 3D map markers (Valencia region towns) */
+.fire-map-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+.fire-map-marker-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(var(--foreground) / 0.7);
+  flex-shrink: 0;
+}
+.fire-map-marker-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: hsl(var(--foreground) / 0.5);
+  margin-top: 2px;
+  white-space: nowrap;
+}

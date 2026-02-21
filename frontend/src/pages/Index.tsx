@@ -1,64 +1,100 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Flame, Shield, Users, Building2, DollarSign, TreePine, Clock } from "lucide-react";
+import { motion } from "framer-motion";
+import { Flame, AlertTriangle } from "lucide-react";
 import FireMap from "@/components/FireMap";
-import MetricCard from "@/components/MetricCard";
-import Timeline from "@/components/Timeline";
+import ImpactDashboard from "@/components/ImpactDashboard";
 import TimeLapsePlayer from "@/components/TimeLapsePlayer";
 import { useTimeLapse } from "@/hooks/useTimeLapse";
 
 const Index = () => {
-  const [activeView, setActiveView] = useState<"actual" | "optimized">("actual");
   const timeLapse = useTimeLapse();
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border px-6 py-4">
+    <div className="min-h-screen bg-background text-foreground mt-8">
+
+      {/* ── Tactical header ── */}
+      <header className="border-b border-white/8 px-6 py-2.5 bg-black/60">
         <div className="max-w-[1600px] mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
-              <Flame className="w-4 h-4 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-sm font-semibold tracking-tight">Spain Wildfire Simulation</h1>
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-                Valencia Region — October 2024
-              </p>
-            </div>
+
+          <div className="flex items-center gap-2.5">
+            <Flame className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/80">
+              ZeroStrike · Wildfire Intelligence
+            </span>
           </div>
-          <div className="flex items-center gap-1 p-1 rounded-lg surface-elevated border border-border">
-            <button
-              onClick={() => setActiveView("actual")}
-              className={`px-4 py-1.5 rounded-md text-xs font-mono uppercase tracking-wider transition-all duration-300 ${
-                activeView === "actual"
-                  ? "bg-danger/20 text-danger glow-danger"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <span className="flex items-center gap-1.5">
-                <Flame className="w-3 h-3" />
-                Actual
-              </span>
-            </button>
-            <button
-              onClick={() => setActiveView("optimized")}
-              className={`px-4 py-1.5 rounded-md text-xs font-mono uppercase tracking-wider transition-all duration-300 ${
-                activeView === "optimized"
-                  ? "bg-optimized/20 text-optimized glow-optimized"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <span className="flex items-center gap-1.5">
-                <Shield className="w-3 h-3" />
-                Optimized
-              </span>
-            </button>
+
+          {/* Dual event title — centre */}
+          <div className="text-center">
+            <p className="text-[11px] font-mono font-bold text-white tracking-widest uppercase">
+              Spain 2024 · Los Angeles 2025
+            </p>
+            <p className="text-[8px] font-mono text-white/40 uppercase tracking-widest">
+              Valencia DANA · Palisades · Eaton · Hurst Fires
+            </p>
           </div>
+
+          <div className="flex items-center gap-4 text-[9px] font-mono uppercase tracking-[0.15em]">
+            <span className="flex items-center gap-1.5 text-orange-400">
+              <span className="w-1.5 h-1.5 bg-orange-500 animate-pulse" />
+              Spain 2024
+            </span>
+            <span className="text-white/20">|</span>
+            <span className="flex items-center gap-1.5 text-red-400">
+              <span className="w-1.5 h-1.5 bg-red-500 animate-pulse" />
+              LA 2025
+            </span>
+          </div>
+
         </div>
       </header>
 
-      <main className="max-w-[1600px] mx-auto p-6">
-        <div className="mb-6">
+      <main className="max-w-[1600px] mx-auto px-6 pt-4 pb-12">
+
+        {/* ── Dual case study maps ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col h-[440px] overflow-hidden border border-orange-500/40 bg-black"
+          >
+            <div className="flex items-center justify-between px-3 py-1.5 bg-orange-950/30 border-b border-orange-500/25">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-orange-500 animate-pulse" />
+                <span className="text-[9px] font-mono font-bold uppercase tracking-[0.2em] text-orange-400">
+                  SPAIN — OCT 2024
+                </span>
+              </div>
+              <span className="text-[8px] font-mono text-orange-500/60 tracking-widest">400,000+ HA BURNED</span>
+            </div>
+            <div className="flex-1 min-h-0">
+              <FireMap mode="spain" timeProgress={timeLapse.progress} />
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.05 }}
+            className="flex flex-col h-[440px] overflow-hidden border border-red-600/40 bg-black"
+          >
+            <div className="flex items-center justify-between px-3 py-1.5 bg-red-950/40 border-b border-red-600/30">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-red-500 animate-pulse" />
+                <span className="text-[9px] font-mono font-bold uppercase tracking-[0.2em] text-red-400">
+                  LOS ANGELES — JAN 2025
+                </span>
+              </div>
+              <span className="text-[8px] font-mono text-red-500/60 tracking-widest">$250B+ DAMAGE</span>
+            </div>
+            <div className="flex-1 min-h-0">
+              <FireMap mode="la" timeProgress={timeLapse.progress} />
+            </div>
+          </motion.div>
+
+        </div>
+
+        {/* ── Play controls ── */}
+        <div className="mb-4">
           <TimeLapsePlayer
             progress={timeLapse.progress}
             isPlaying={timeLapse.isPlaying}
@@ -69,81 +105,36 @@ const Index = () => {
           />
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mb-6 p-4 rounded-lg surface-elevated border border-border flex items-center justify-between"
-        >
-          <div className="flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">
-              Simulation comparing actual DANA storm wildfire impact vs. AI-optimized emergency response
-            </span>
-          </div>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeView}
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 5 }}
-              className={`text-xs font-mono font-bold ${activeView === "actual" ? "text-danger" : "text-optimized"}`}
-            >
-              {activeView === "actual" ? "⚠ CATASTROPHIC OUTCOME" : "✓ OPTIMIZED OUTCOME"}
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
+        {/* ── Impact dashboard ── */}
+        <ImpactDashboard timeProgress={timeLapse.progress} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 h-[500px]">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeView}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="h-full"
-              >
-                <FireMap mode={activeView} timeProgress={timeLapse.progress} />
-              </motion.div>
-            </AnimatePresence>
-          </div>
-          <div className="space-y-4">
-            <MetricCard icon={<Users className="w-4 h-4" />} label="Lives Lost" actualValue={222} optimizedValue={0} savedLabel="Lives Saved" savedValue="222 people" delay={0.1} timeProgress={timeLapse.progress} />
-            <MetricCard icon={<Users className="w-4 h-4" />} label="Injuries" actualValue="1,900+" optimizedValue={12} savedLabel="Injuries Prevented" savedValue="99.4%" delay={0.2} timeProgress={timeLapse.progress} />
-            <MetricCard icon={<Building2 className="w-4 h-4" />} label="Structures Destroyed" actualValue={12400} optimizedValue={380} savedLabel="Structures Saved" savedValue="96.9%" delay={0.3} timeProgress={timeLapse.progress} />
-            <MetricCard icon={<DollarSign className="w-4 h-4" />} label="Financial Losses" actualValue="€2.1B" optimizedValue="€180M" savedLabel="Cost Saved" savedValue="€1.92 Billion" delay={0.4} timeProgress={timeLapse.progress} />
-            <MetricCard icon={<TreePine className="w-4 h-4" />} label="Hectares Burned" actualValue={30000} optimizedValue={4200} unit="ha" savedLabel="Area Saved" savedValue="86%" delay={0.5} timeProgress={timeLapse.progress} />
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <Timeline timeProgress={timeLapse.progress} />
-        </div>
-
+        {/* ── Final callout at 100% ── */}
         {timeLapse.progress >= 1 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mt-8 p-6 rounded-lg border border-glow-optimized surface-elevated"
+            className="mt-6 p-6 rounded-lg border border-orange-500/25 surface-elevated"
           >
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-lg bg-optimized/10 flex items-center justify-center flex-shrink-0">
-                <Shield className="w-5 h-5 text-optimized" />
+              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-orange-400" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold mb-1">Optimized System Impact Summary</h3>
+                <h3 className="text-sm font-semibold mb-1">Two Catastrophes. One Pattern. One Solution.</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl">
-                  Using AI-driven early detection, predictive fire modeling, automated evacuation routing,
-                  and coordinated drone-ground response, the optimized system would have reduced casualties
-                  to zero, saved €1.92 billion in damages, and contained the fire to 14% of its actual
-                  spread area — transforming a national catastrophe into a managed emergency event.
+                  Whether it's the richest neighbourhoods in America or the rural heartlands of Europe —
+                  the result is the same. Spain burned 400,000+ ha for €12.2B. LA burned 37,000 acres for $250B.
+                  LA cost 50× more per hectare due to urban–wildland interface and high-value real estate.
+                  Humans can't respond fast enough. ZeroStrike's AI-driven early detection,
+                  predictive modelling, and autonomous dispatch transforms both from national catastrophes
+                  into managed emergency events — with a proven 24× ROI.
                 </p>
               </div>
             </div>
           </motion.div>
         )}
+
       </main>
     </div>
   );

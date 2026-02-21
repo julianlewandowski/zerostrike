@@ -4,7 +4,7 @@ const DURATION_MS = 8000;
 const TICK_MS = 50;
 
 export function useTimeLapse() {
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(1); // Default: full impact visible
   const [isPlaying, setIsPlaying] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -18,6 +18,7 @@ export function useTimeLapse() {
 
   const play = useCallback(() => {
     stop();
+    setProgress(0); // Always replay from the start
     setIsPlaying(true);
     intervalRef.current = setInterval(() => {
       setProgress((prev) => {

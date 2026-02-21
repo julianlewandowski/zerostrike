@@ -1,0 +1,86 @@
+/* ── Agripilot Dashboard — scoped styles ───────────────────────────── */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Outlined');
+
+.ag-shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #0d0d0d;
+  color: #e2e8f0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Glassmorphism layers */
+.ag-glass {
+  background: rgba(14, 14, 14, 0.78);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+.ag-glass-card {
+  background: rgba(28, 28, 28, 0.70);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+}
+.ag-glass-sidebar {
+  background: rgba(18, 18, 18, 0.88);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+
+/* Material Icons: ensure outlined variant renders */
+.material-icons-outlined {
+  font-family: 'Material Icons Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Divider between info bar columns */
+.ag-col-divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 20px 0;
+  background: rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+/* Info bar sub-row */
+.ag-info-sub {
+  font-size: 10px;
+  color: #64748b;
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 2px;
+}
+
+/* Live pulse dot */
+.ag-pulse {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: ag-pulse-anim 1.4s ease-in-out infinite;
+}
+.ag-pulse.orange { background: #f97316; }
+.ag-pulse.red    { background: #ef4444; }
+
+@keyframes ag-pulse-anim {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* Footer link colour */
+.ag-footer-live  { color: #22c55e; }
+.ag-footer-mock  { color: #64748b; }
+.ag-footer-brand { color: #f97316; }
