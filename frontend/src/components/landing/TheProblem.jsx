@@ -150,27 +150,39 @@ const TheProblem = () => {
               </div>
               
               <h2 className="text-5xl md:text-7xl font-hero font-black text-white mb-8 leading-[0.9] tracking-tighter italic">
-                Every Year,<br />
+                every year,<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-600">
-                  We're Losing.
+                  we're losing.
                 </span>
               </h2>
-              
-              <p className="text-lg text-slate-400 leading-relaxed mb-12 border-l border-slate-700 pl-6">
-                Wildfires cause massive damage every year. Last year alone, they caused $225 billion in direct economic damage worldwide, and hundreds of lives lost.
-                Reponse times to wildfires are too slow (often 4-6 hours), and by then it's too late.
-                Meanwhile, dry lightning strikes are the leading cause of wildfires, accounting for 60% of all wildfires. This is when lightning strikes from storms that produce no rain, and ignites dry terrain with zero warning and suppression.
-                By the time humans intervene, it's already out of control.
-                Current systems rely on people watching dashboards, making phone calls, coordinating across agencies.
-                The technology to predict these strikes exists. The technology to neutralize them exists. But nobody has connected them before, until now.
-              </p>
+
+              <div className="text-lg text-slate-400 leading-relaxed mb-12 border-l border-slate-700 pl-6 space-y-4">
+                <p>
+                  wildfires cause massive damage every year. last year alone, they caused $225 billion in direct economic damage worldwide, and hundreds of lives lost.
+                </p>
+                <p>
+                  response times to wildfires are too slow (often 4-6 hours), and by then it's too late.
+                </p>
+                <p>
+                  meanwhile, dry lightning strikes are the leading cause of wildfires, accounting for 60% of all wildfires. this is when lightning strikes from storms that produce no rain, and ignites dry terrain with zero warning and suppression.
+                </p>
+                <p>
+                  by the time humans intervene, it's already out of control.
+                </p>
+                <p>
+                  current systems rely on people watching dashboards, making phone calls, coordinating across agencies.
+                </p>
+                <p>
+                  the technology to predict these strikes exists. the technology to neutralize them exists. but nobody has connected them before, until now.
+                </p>
+              </div>
             </motion.div>
 
             <div className="grid grid-cols-2 gap-x-8 gap-y-12">
-              <Stat value="30+" label="Lives Lost (2025 LA)" delay={0.2} />
-              <Stat value="$250B" label="Damage (Single Event)" delay={0.4} />
-              <Stat value="4h+" label="Avg Response Time" delay={0.6} />
-              <Stat value="60%" label="Dry Lightning Cause" delay={0.8} />
+              <Stat value="30+" label="lives lost (2025 LA)" delay={0.2} />
+              <Stat value="$250B" label="damage (single event)" delay={0.4} />
+              <Stat value="4h+" label="avg response time" delay={0.6} />
+              <Stat value="60%" label="dry lightning cause" delay={0.8} />
             </div>
           </div>
 

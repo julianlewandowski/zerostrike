@@ -55,7 +55,7 @@ const TheSolution = () => {
             transition={{ delay: 0.1 }}
             className="text-4xl md:text-5xl font-display font-bold text-white mb-6"
           >
-            Agentic Wildfire Prevention
+            agentic wildfire prevention
           </motion.h2>
           
           <motion.p 
@@ -65,7 +65,7 @@ const TheSolution = () => {
             transition={{ delay: 0.2 }}
             className="text-xl text-slate-400"
           >
-            We stop dry lightning strikes to prevent wildfires before they start.
+            we stop dry lightning strikes to prevent wildfires before they start.
           </motion.p>
         </div>
 
@@ -73,19 +73,19 @@ const TheSolution = () => {
           <Card
             icon={Radar}
             title="we predict with data"
-            desc="We pull from 120 data sources — NASA satellites, ESA geospatial datasets, a decade of fire history, and live moisture readings — into a single risk layer updated every hour. Our model scores land risk, strike probability, and consequence to flag the highest-risk dry lightning zones."
+            desc="we pull from 120 data sources: NASA satellites, ESA geospatial datasets, a decade of fire history, and live moisture readings, combined into a single risk layer updated every hour. our model scores land risk, strike probability, and consequence to flag the highest-risk dry lightning zones."
             delay={0.3}
           />
           <Card
             icon={Brain}
             title="we decide with predictions"
-            desc="The moment a storm cell trajectory intersects a red zone, our system flags it, identifies which drone in the fleet can intercept fastest, and generates a dispatch route in under three seconds. No committees. No phone calls. No delays."
+            desc="the moment a storm cell trajectory intersects a red zone, our system flags it, identifies which drone in the fleet can intercept fastest, and generates a dispatch route in under three seconds. no committees. no phone calls. no delays."
             delay={0.5}
           />
           <Card
             icon={Plane}
             title="we act on decisions"
-            desc="Drones fly to the calculated intercept point and release cloud-seeding agents, triggering precipitation over the high-risk area before a single spark lands. We reduce dry lightning ignition risk by 95% — cutting wildfire starts by 58%."
+            desc="drones fly to the calculated intercept point and release cloud-seeding agents, triggering precipitation over the high-risk area before a single spark lands. we reduce dry lightning ignition risk by 95%, cutting wildfire starts by 58%."
             delay={0.7}
           />
         </div>

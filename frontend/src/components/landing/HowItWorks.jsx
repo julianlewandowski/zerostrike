@@ -47,21 +47,21 @@ const HowItWorks = () => {
               className="mb-12"
             >
               <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">
-                The Kill Chain
+                the kill chain
               </h2>
               <p className="text-lg text-slate-400 leading-relaxed">
-                Every cell on the map is scored using three layers: fuel risk from satellite vegetation and terrain data, atmospheric risk from live weather models measuring convective energy and moisture, and consequence risk based on proximity to people and infrastructure.
+                every cell on the map is scored using three layers: fuel risk from satellite vegetation and terrain data, atmospheric risk from live weather models measuring convective energy and moisture, and consequence risk based on proximity to people and infrastructure.
               </p>
             </motion.div>
 
             <div className="space-y-2">
-              <Step number="01" title="Satellite + Weather + Terrain Data" sub="Ingestion Layer" />
-              <Step number="02" title="Grid Scoring Engine" sub="Fuel × Atmospheric × Consequence" />
-              <Step number="03" title="Storm Tracking & Projection" sub="6-hour horizon" />
-              <Step number="04" title="Collision Detection" sub="Storm paths × High-risk zones" />
-              <Step number="05" title="Priority Queue" sub="Ranked threat zones" />
-              <Step number="06" title="Fleet Optimizer" sub="Match drones to threats in <3 sec" />
-              <Step number="07" title="Drone Dispatch" sub="Intercept & neutralize" isLast />
+              <Step number="01" title="satellite + weather + terrain data" sub="ingestion layer" />
+              <Step number="02" title="grid scoring engine" sub="fuel × atmospheric × consequence" />
+              <Step number="03" title="storm tracking & projection" sub="6-hour horizon" />
+              <Step number="04" title="collision detection" sub="storm paths × high-risk zones" />
+              <Step number="05" title="priority queue" sub="ranked threat zones" />
+              <Step number="06" title="fleet optimizer" sub="match drones to threats in <3 sec" />
+              <Step number="07" title="drone dispatch" sub="intercept & neutralize" isLast />
             </div>
           </div>
 

@@ -9,7 +9,7 @@ const BOOT_LINES = [
   { text: 'SATELLITE UPLINK: AES-256 / ENCRYPTED......... OK' },
   { text: 'COVERAGE ZONE EU-THETA: 94.2% NOMINAL......... OK' },
   { text: '──────────────────────────────────────────────────', sep: true },
-  { text: 'ACCESS GRANTED — ENTERING COMMAND CENTER',         special: true },
+  { text: 'ACCESS GRANTED // ENTERING COMMAND CENTER',        special: true },
 ];
 
 const LINE_INTERVAL = 360; // ms between lines

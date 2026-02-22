@@ -456,14 +456,14 @@ export default function Landing() {
         {/* ── Hero ──────────────────────────────────────────────── */}
         <section className="landing-hero">
           <div className="landing-hero-content">
-            <div className="landing-eyebrow">STOPPING DRY LIGHTNING STRIKES</div>
+            <div className="landing-eyebrow">stopping dry lightning strikes</div>
 
             <h1 className="landing-wordmark">ZEROSTRIKE</h1>
 
-            <div className="landing-tagline">The Palantir for Wildfires</div>
+            <div className="landing-tagline">the Palantir for wildfires</div>
 
             <p className="landing-desc">
-              We prevent wildfires by stopping dry lightning strikes with a prediction model and agent orchestration layer that deploys autonomous cloud seeding drones.
+              we prevent wildfires by stopping dry lightning strikes with a prediction model and agent orchestration layer that deploys autonomous cloud seeding drones.
             </p>
 
             <div className="landing-cta-row">
