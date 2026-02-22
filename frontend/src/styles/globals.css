@@ -34,31 +34,13 @@
   --glass-blur:   backdrop-filter: blur(12px);
 }
 
-/* ─── Base Reset ───────────────────────────────────────────────────── */
+/* ─── Base Reset (box-sizing only — margin/padding handled by Tailwind Preflight) ── */
 *, *::before, *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
-html, body, #root {
-  height: 100%;
-  overflow: hidden;
-}
-
-body {
-  background-color: var(--bg-deep);
-  color: var(--text-primary);
-  font-family: var(--font-ui); /* Default to UI font for readability */
-  font-size: 13px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  /* Subtle grid background */
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
+/* html/body/root are NOT locked to 100% height so that scrollable pages
+   (landing, case-study) work normally. The dashboard uses 100vh directly. */
 
 /* ─── App Layout ───────────────────────────────────────────────────── */
 .app-shell {
@@ -740,10 +722,7 @@ body {
   100% { top: 100vh; }
 }
 
-/* ─── Custom Cursor ────────────────────────────────────────────────── */
-body, a, button, input, textarea, select, .clickable {
-  cursor: none !important;
-}
+/* ─── Custom Cursor (dashboard only — zerostrike.css scopes it to .zs-shell) ── */
 
 .custom-cursor-dot {
   position: fixed;
