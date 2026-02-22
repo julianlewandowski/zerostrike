@@ -525,6 +525,33 @@
 .zs-search:focus { border-color: rgba(249, 115, 22, 0.45); }
 .zs-search::placeholder { color: rgba(200, 205, 214, 0.25); }
 
+/* ── Agent chat animations ──────────────────────────────────────────── */
+@keyframes zs-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes zs-blink {
+  0%, 50%  { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.zs-thinking-spinner {
+  border: 1.5px solid rgba(96, 165, 250, 0.2);
+  border-top-color: #60a5fa;
+  border-radius: 50%;
+  animation: zs-spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+.zs-cursor-blink {
+  animation: zs-blink 1s step-end infinite;
+  color: #f97316;
+}
+.zs-badge-thinking {
+  background: rgba(96, 165, 250, 0.12);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  color: #60a5fa;
+}
+
 /* ── Mapbox control overrides ───────────────────────────────────────── */
 .mapboxgl-ctrl-attrib-inner,
 .mapboxgl-ctrl-logo { display: none !important; }
