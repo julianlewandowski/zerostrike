@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=Chakra+Petch:wght@400;600;700&family=Unbounded:wght@400;600;700;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -39,6 +39,8 @@
     --metric-bg: 220 18% 9%;
     --font-display: 'Inter', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --font-hero: 'Unbounded', sans-serif;
+    --font-tech: 'Chakra Petch', sans-serif;
   }
 }
 
@@ -47,8 +49,7 @@
     border-color: hsl(var(--border));
   }
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    @apply bg-background text-foreground;
     font-family: var(--font-display);
   }
 }
