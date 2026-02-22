@@ -1,19 +1,46 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        cyan:   { DEFAULT: '#38bdf8', dim: '#0ea5e9', glow: 'rgba(56, 189, 248, 0.15)' }, // Sky blue-ish
-        orange: { DEFAULT: '#f59e0b', dim: '#d97706' }, // Amber
-        red:    { DEFAULT: '#ef4444', dim: '#b91c1c' }, // Red
-        green:  { DEFAULT: '#10b981', dim: '#059669' }, // Emerald
+        // Semantic theme (CSS variables from index.css) — so case study & UI have dark theme
+        background:       'hsl(var(--background))',
+        foreground:       'hsl(var(--foreground))',
+        card:             'hsl(var(--card))',
+        'card-foreground': 'hsl(var(--card-foreground))',
+        popover:           'hsl(var(--popover))',
+        'popover-foreground': 'hsl(var(--popover-foreground))',
+        primary:          'hsl(var(--primary))',
+        'primary-foreground': 'hsl(var(--primary-foreground))',
+        secondary:        'hsl(var(--secondary))',
+        'secondary-foreground': 'hsl(var(--secondary-foreground))',
+        muted:            'hsl(var(--muted))',
+        'muted-foreground': 'hsl(var(--muted-foreground))',
+        accent:            'hsl(var(--accent))',
+        'accent-foreground': 'hsl(var(--accent-foreground))',
+        destructive:      'hsl(var(--destructive))',
+        'destructive-foreground': 'hsl(var(--destructive-foreground))',
+        border:           'hsl(var(--border))',
+        input:            'hsl(var(--input))',
+        ring:             'hsl(var(--ring))',
+        cyan:   { DEFAULT: '#38bdf8', dim: '#0ea5e9', glow: 'rgba(56, 189, 248, 0.15)' },
+        orange: { DEFAULT: '#f59e0b', dim: '#d97706' },
+        red:    { DEFAULT: '#ef4444', dim: '#b91c1c' },
+        green:  { DEFAULT: '#10b981', dim: '#059669' },
         bg: {
-          deep:    '#020408', // Almost black
-          panel:   'rgba(11, 17, 33, 0.85)', // Dark slate with opacity
+          deep:    '#020408',
+          panel:   'rgba(11, 17, 33, 0.85)',
           surface: '#1e293b',
         },
       },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+      },
+      ringColor:  { DEFAULT: 'hsl(var(--ring))' },
+      ringOffsetColor: { DEFAULT: 'hsl(var(--background))' },
       fontFamily: {
         mono: ['"JetBrains Mono"', '"Fira Code"', 'monospace'], // More coding-focused mono
         ui:   ['Inter', 'system-ui', 'sans-serif'], // Clean UI font

@@ -84,6 +84,19 @@ function getHectares(mode: "spain" | "la", t: number): string {
   return Math.round((mode === "spain" ? 30_000 : 15_000) * t).toLocaleString();
 }
 
+// Project lng/lat to SVG x,y for fallback static map (no Mapbox token)
+const FALLBACK_VIEW = { width: 400, height: 400 };
+function projectSpain(lng: number, lat: number): [number, number] {
+  const x = ((lng + 0.82) / 0.6) * FALLBACK_VIEW.width;
+  const y = ((39.46 - lat) / 0.5) * FALLBACK_VIEW.height;
+  return [x, y];
+}
+function projectLA(lng: number, lat: number): [number, number] {
+  const x = ((lng + 118.38) / 0.8) * FALLBACK_VIEW.width;
+  const y = ((34.12 - lat) / 0.4) * FALLBACK_VIEW.height;
+  return [x, y];
+}
+
 const FireMap = ({ mode, timeProgress }: FireMapProps) => {
   const containerRef     = useRef<HTMLDivElement>(null);
   const mapRef           = useRef<mapboxgl.Map | null>(null);
@@ -158,139 +171,172 @@ const FireMap = ({ mode, timeProgress }: FireMapProps) => {
     if (!isPublicToken || !containerRef.current) return;
 
     mapboxgl.accessToken = token as string;
+    const el = containerRef.current;
 
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style:   "mapbox://styles/mapbox/satellite-streets-v12",
-      center:  isSpain ? SPAIN_CENTER : LA_CENTER,
-      zoom:    isSpain ? 8.8 : 9.0,
-      pitch:   60,
-      bearing: isSpain ? 15 : -10,
-      antialias: true,
-    });
+    let activeMap: mapboxgl.Map | null = null;
+    let sizeRo: ResizeObserver | null = null;
+    let waitRo: ResizeObserver | null = null;
 
-    map.on("load", () => {
-      // Desaturate all raster layers to B&W — vector/GeoJSON layers stay colored
-      const style = map.getStyle();
-      if (style?.layers) {
-        style.layers.forEach((layer) => {
-          if (layer.type === "raster") {
-            map.setPaintProperty(layer.id, "raster-saturation",    -1);
-            map.setPaintProperty(layer.id, "raster-brightness-max", 0.78);
-            map.setPaintProperty(layer.id, "raster-contrast",       0.2);
-          }
+    const createMap = () => {
+      if (!containerRef.current || activeMap) return;
+
+      const map = new mapboxgl.Map({
+        container: containerRef.current,
+        style:   "mapbox://styles/mapbox/satellite-streets-v12",
+        center:  isSpain ? SPAIN_CENTER : LA_CENTER,
+        zoom:    isSpain ? 8.8 : 9.0,
+        pitch:   60,
+        bearing: isSpain ? 15 : -10,
+        antialias: true,
+      });
+
+      map.on("load", () => {
+        // Desaturate all raster layers to B&W — vector/GeoJSON layers stay colored
+        const style = map.getStyle();
+        if (style?.layers) {
+          style.layers.forEach((layer) => {
+            if (layer.type === "raster") {
+              map.setPaintProperty(layer.id, "raster-saturation",    -1);
+              map.setPaintProperty(layer.id, "raster-brightness-max", 0.78);
+              map.setPaintProperty(layer.id, "raster-contrast",       0.2);
+            }
+          });
+        }
+
+        // 3D elevation
+        map.addSource("mapbox-dem", {
+          type: "raster-dem",
+          url:  "mapbox://mapbox.mapbox-terrain-dem-v1",
+          tileSize: 512,
+          maxzoom: 14,
         });
-      }
+        map.setTerrain({ source: "mapbox-dem", exaggeration: 2.0 });
 
-      // 3D elevation
-      map.addSource("mapbox-dem", {
-        type: "raster-dem",
-        url:  "mapbox://mapbox.mapbox-terrain-dem-v1",
-        tileSize: 512,
-        maxzoom: 14,
-      });
-      map.setTerrain({ source: "mapbox-dem", exaggeration: 2.0 });
-
-      // Hillshading on top of B&W satellite
-      map.addLayer(
-        {
-          id:   "hillshading",
-          type: "hillshade",
-          source: "mapbox-dem",
-          paint: {
-            "hillshade-exaggeration":           0.55,
-            "hillshade-shadow-color":           "#000000",
-            "hillshade-highlight-color":        "#ffffff",
-            "hillshade-accent-color":           "#000000",
-            "hillshade-illumination-direction": 315,
-            "hillshade-illumination-anchor":    "viewport",
+        // Hillshading on top of B&W satellite
+        map.addLayer(
+          {
+            id:   "hillshading",
+            type: "hillshade",
+            source: "mapbox-dem",
+            paint: {
+              "hillshade-exaggeration":           0.55,
+              "hillshade-shadow-color":           "#000000",
+              "hillshade-highlight-color":        "#ffffff",
+              "hillshade-accent-color":           "#000000",
+              "hillshade-illumination-direction": 315,
+              "hillshade-illumination-anchor":    "viewport",
+            },
           },
-        },
-        "waterway-label"
-      );
+          "waterway-label"
+        );
 
-      // FIRMS hotspot squares
-      map.addSource("firms-hotspots", {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: [] },
+        // FIRMS hotspot squares
+        map.addSource("firms-hotspots", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: [] },
+        });
+
+        map.addLayer({
+          id: "hotspots-glow",
+          type: "fill",
+          source: "firms-hotspots",
+          paint: { "fill-color": hotGlow, "fill-opacity": 0.15 },
+        });
+
+        map.addLayer({
+          id: "hotspots-fill",
+          type: "fill",
+          source: "firms-hotspots",
+          paint: {
+            "fill-color": [
+              "case",
+              ["==", ["get", "daynight"], "N"], hotNight, hotDay,
+            ],
+            "fill-opacity": 0.88,
+          },
+        });
+
+        map.addLayer({
+          id: "hotspots-outline",
+          type: "line",
+          source: "firms-hotspots",
+          paint: { "line-color": "#ffffff", "line-width": 0.6, "line-opacity": 0.5 },
+        });
+
+        // Burned area zone
+        map.addSource("fire-zones", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: [] },
+        });
+
+        map.addLayer({
+          id: "fire-zones-fill",
+          type: "fill",
+          source: "fire-zones",
+          paint: { "fill-color": fillColor, "fill-opacity": 0.40 },
+        });
+
+        map.addLayer({
+          id: "fire-zones-outline",
+          type: "line",
+          source: "fire-zones",
+          paint: {
+            "line-color":   lineColor,
+            "line-width":   1.8,
+            "line-opacity": 0.9,
+            "line-blur":    2,
+          },
+        });
+
+        // Town markers
+        townMarkers.forEach((t) => {
+          const markerEl = document.createElement("div");
+          markerEl.className = "fire-map-marker";
+          markerEl.innerHTML = `<span class="fire-map-marker-dot"></span><span class="fire-map-marker-label">${t.name}</span>`;
+          new mapboxgl.Marker({ element: markerEl, anchor: "center" })
+            .setLngLat([t.lng, t.lat])
+            .addTo(map);
+        });
+
+        // Seed sources immediately with whatever progress is current (may be 1 on first load)
+        if (fireGeoJSONRef.current)
+          (map.getSource("fire-zones") as mapboxgl.GeoJSONSource).setData(fireGeoJSONRef.current);
+        if (hotspotsGeoJSONRef.current)
+          (map.getSource("firms-hotspots") as mapboxgl.GeoJSONSource).setData(hotspotsGeoJSONRef.current);
       });
 
-      map.addLayer({
-        id: "hotspots-glow",
-        type: "fill",
-        source: "firms-hotspots",
-        paint: { "fill-color": hotGlow, "fill-opacity": 0.15 },
+      activeMap = map;
+      mapRef.current = map;
+
+      // Resize map whenever container dimensions change
+      sizeRo = new ResizeObserver(() => { map.resize(); });
+      sizeRo.observe(containerRef.current!);
+    };
+
+    if (el.clientWidth > 0 || el.clientHeight > 0) {
+      // Container is already visible — initialise immediately
+      createMap();
+    } else {
+      // Container is inside a hidden tab (display:none ancestor) — wait until visible
+      waitRo = new ResizeObserver(() => {
+        if (
+          containerRef.current &&
+          (containerRef.current.clientWidth > 0 || containerRef.current.clientHeight > 0)
+        ) {
+          waitRo?.disconnect();
+          waitRo = null;
+          createMap();
+        }
       });
+      waitRo.observe(el);
+    }
 
-      map.addLayer({
-        id: "hotspots-fill",
-        type: "fill",
-        source: "firms-hotspots",
-        paint: {
-          "fill-color": [
-            "case",
-            ["==", ["get", "daynight"], "N"], hotNight, hotDay,
-          ],
-          "fill-opacity": 0.88,
-        },
-      });
-
-      map.addLayer({
-        id: "hotspots-outline",
-        type: "line",
-        source: "firms-hotspots",
-        paint: { "line-color": "#ffffff", "line-width": 0.6, "line-opacity": 0.5 },
-      });
-
-      // Burned area zone
-      map.addSource("fire-zones", {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: [] },
-      });
-
-      map.addLayer({
-        id: "fire-zones-fill",
-        type: "fill",
-        source: "fire-zones",
-        paint: { "fill-color": fillColor, "fill-opacity": 0.40 },
-      });
-
-      map.addLayer({
-        id: "fire-zones-outline",
-        type: "line",
-        source: "fire-zones",
-        paint: {
-          "line-color":   lineColor,
-          "line-width":   1.8,
-          "line-opacity": 0.9,
-          "line-blur":    2,
-        },
-      });
-
-      // Town markers
-      townMarkers.forEach((t) => {
-        const el = document.createElement("div");
-        el.className = "fire-map-marker";
-        el.innerHTML = `<span class="fire-map-marker-dot"></span><span class="fire-map-marker-label">${t.name}</span>`;
-        new mapboxgl.Marker({ element: el, anchor: "center" })
-          .setLngLat([t.lng, t.lat])
-          .addTo(map);
-      });
-
-      // Seed sources immediately with whatever progress is current (may be 1 on first load)
-      if (fireGeoJSONRef.current)
-        (map.getSource("fire-zones") as mapboxgl.GeoJSONSource).setData(fireGeoJSONRef.current);
-      if (hotspotsGeoJSONRef.current)
-        (map.getSource("firms-hotspots") as mapboxgl.GeoJSONSource).setData(hotspotsGeoJSONRef.current);
-    });
-
-    mapRef.current = map;
-
-    // Resize map whenever container becomes visible (e.g. switching from a hidden tab)
-    const ro = new ResizeObserver(() => { map.resize(); });
-    ro.observe(containerRef.current!);
-
-    return () => { map.remove(); ro.disconnect(); mapRef.current = null; };
+    return () => {
+      waitRo?.disconnect();
+      sizeRo?.disconnect();
+      activeMap?.remove();
+      mapRef.current = null;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, isPublicToken]);
 
@@ -305,31 +351,115 @@ const FireMap = ({ mode, timeProgress }: FireMapProps) => {
     (map?.getSource("firms-hotspots") as mapboxgl.GeoJSONSource | undefined)?.setData(hotspotsGeoJSON);
   }, [fireGeoJSON, hotspotsGeoJSON]);
 
-  // ── Error states ──────────────────────────────────────────────────────────
-  if (!token) {
-    return (
-      <div className="relative w-full h-full flex items-center justify-center bg-black border border-white/10">
-        <p className="text-xs font-mono text-white/40 text-center px-4">
-          Set <code>VITE_MAPBOX_TOKEN</code> in <code>.env</code>
+  // ── Fallback: static map image (no token or invalid token) ───────────────────
+  const project = isSpain ? projectSpain : projectLA;
+  const renderFallbackMap = () => (
+    <div className="relative w-full h-full overflow-hidden">
+      {/* Dark gradient background */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(180deg, #0a0a0a 0%, #1a0f08 40%, #0d0d0d 100%)",
+        }}
+      />
+      <svg
+        className="absolute inset-0 w-full h-full object-cover opacity-90"
+        viewBox={`0 0 ${FALLBACK_VIEW.width} ${FALLBACK_VIEW.height}`}
+        preserveAspectRatio="xMidYMid slice"
+      >
+        {/* Fire zones */}
+        {fireGeoJSON.features.map((f, i) => {
+          const coords = f.geometry.coordinates[0];
+          const points = coords.map(([lng, lat]) => project(lng, lat).join(",")).join(" ");
+          return (
+            <g key={i}>
+              <polygon
+                points={points}
+                fill={fillColor}
+                fillOpacity={0.35}
+                stroke={lineColor}
+                strokeWidth={1.2}
+                strokeOpacity={0.9}
+              />
+            </g>
+          );
+        })}
+        {/* FIRMS hotspots */}
+        {hotspotsGeoJSON.features.map((f, i) => {
+          const coords = f.geometry.coordinates[0];
+          const [lng0, lat0] = coords[0];
+          const [lng1, lat1] = coords[1];
+          const [x0, y0] = project(lng0, lat0);
+          const [x1, y1] = project(lng1, lat1);
+          const daynight = (f.properties as { daynight?: string })?.daynight;
+          const fill = daynight === "N" ? hotNight : hotDay;
+          return (
+            <rect
+              key={i}
+              x={Math.min(x0, x1)}
+              y={Math.min(y0, y1)}
+              width={Math.abs(x1 - x0)}
+              height={Math.abs(y1 - y0)}
+              fill={fill}
+              fillOpacity={0.85}
+              stroke="rgba(255,255,255,0.4)"
+              strokeWidth={0.4}
+            />
+          );
+        })}
+      </svg>
+      {/* Vignette */}
+      <div
+        className="absolute inset-0 pointer-events-none z-10"
+        style={{ background: "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.6) 100%)" }}
+      />
+      {/* Token hint — subtle */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 px-2 py-1 rounded bg-black/60 border border-white/10">
+        <p className="text-[9px] font-mono text-white/40 text-center">
+          Add <code className="text-white/60">VITE_MAPBOX_TOKEN</code> in <code>.env</code> for live map
         </p>
       </div>
-    );
-  }
-  if (!isPublicToken) {
-    return (
-      <div className="relative w-full h-full flex items-center justify-center bg-black border border-white/10">
-        <p className="text-xs font-mono text-white/40 text-center px-4 max-w-xs">
-          Public token required (<code>pk.*</code>). Get one at account.mapbox.com
-        </p>
-      </div>
-    );
-  }
+    </div>
+  );
 
-  // LA = red (bigger threat), Spain = amber/orange
   const accent    = isSpain ? "border-orange-500/50" : "border-red-600/50";
   const accentTxt = isSpain ? "text-orange-400"       : "text-red-400";
   const accentBg  = isSpain ? "bg-orange-900/15"      : "bg-red-900/20";
   const dotColor  = isSpain ? "bg-orange-500 animate-pulse" : "bg-red-500 animate-pulse";
+
+  // When no valid token, show static map image (zones + hotspots) instead of text only
+  if (!token || !isPublicToken) {
+    return (
+      <div className="relative w-full h-full overflow-hidden">
+        {renderFallbackMap()}
+        <div className={`absolute top-4 left-8 z-30 flex items-center gap-1.5 px-2 py-1 ${accentBg} border ${accent}`}>
+          <span className={`w-1.5 h-1.5 ${dotColor}`} />
+          <span className={`text-[9px] font-mono uppercase tracking-[0.18em] ${accentTxt}`}>
+            {isSpain ? "SPAIN — OCT 2024" : "LOS ANGELES — JAN 2025"}
+          </span>
+        </div>
+        <div className={`absolute bottom-4 left-8 z-30 px-2 py-1.5 ${accentBg} border ${accent} space-y-1`}>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 flex-shrink-0 bg-orange-400" />
+            <span className="text-[8px] font-mono text-white/60">FIRMS VIIRS · day</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 flex-shrink-0 bg-red-500" />
+            <span className="text-[8px] font-mono text-white/60">FIRMS VIIRS · night</span>
+          </div>
+        </div>
+        <div className={`absolute bottom-4 right-8 z-30 text-right px-2 py-1.5 ${accentBg} border ${accent}`}>
+          <p className="text-[8px] font-mono text-white/40 uppercase tracking-widest">
+            {hotspotsGeoJSON.features.length} DETECTIONS
+          </p>
+          <p className={`text-base font-bold font-mono tabular-nums ${accentTxt}`}>
+            {getHectares(mode, timeProgress)}
+            <span className="text-[9px] text-white/40 ml-1">ha</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full overflow-hidden">

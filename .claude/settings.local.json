@@ -6,7 +6,10 @@
       "Bash(cd /c/Users/julek/OneDrive/Documents/zerostrike/frontend && npm install mapbox-gl react-map-gl 2>&1)",
       "Bash(head:*)",
       "Bash(cd /c/Users/julek/OneDrive/Documents/zerostrike/frontend && npm install react-router-dom recharts 2>&1)",
-      "Bash(cd /c/Users/julek/OneDrive/Documents/zerostrike/frontend && npm run dev 2>&1)"
+      "Bash(cd /c/Users/julek/OneDrive/Documents/zerostrike/frontend && npm run dev 2>&1)",
+      "Bash(git log:*)",
+      "Bash(echo:*)",
+      "Bash(pkill:*)"
     ]
   }
 }

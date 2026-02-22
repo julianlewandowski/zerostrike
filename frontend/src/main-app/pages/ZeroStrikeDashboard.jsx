@@ -86,11 +86,76 @@ function Spark({ points, stroke }) {
   );
 }
 
+/* ── Live Feed: user camera (same feed on left and right) ─────────────── */
+const videoStyle = {
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+};
+function LiveFeedCamera() {
+  const videoLeftRef  = useRef(null);
+  const videoRightRef = useRef(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let stream = null;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError('Camera not supported');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then((s) => {
+        stream = s;
+        [videoLeftRef.current, videoRightRef.current].forEach((el) => {
+          if (el) {
+            el.srcObject = s;
+            el.play().catch(() => {});
+          }
+        });
+      })
+      .catch((err) => {
+        setError(err.message || 'Camera access denied');
+      });
+    return () => {
+      if (stream) stream.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
+  if (error) {
+    return (
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 6,
+      }}>
+        <span className="material-icons-outlined" style={{ fontSize: 24, color: 'rgba(249,115,22,0.35)' }}>videocam_off</span>
+        <span style={{ fontSize: 8, color: 'rgba(249,115,22,0.6)', textAlign: 'center', padding: '0 8px' }}>{error}</span>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '50%', overflow: 'hidden' }}>
+        <video ref={videoLeftRef} autoPlay playsInline muted style={videoStyle} />
+      </div>
+      <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '50%', overflow: 'hidden' }}>
+        <video ref={videoRightRef} autoPlay playsInline muted style={videoStyle} />
+      </div>
+    </>
+  );
+}
+
 /* ── Main dashboard ──────────────────────────────────────────────────── */
 export default function ZeroStrikeDashboard() {
   const [entries, setEntries]     = useState(INIT_ENTRIES);
   const [viewState, setViewState] = useState(INIT_VIEW);
-  const poolIdx = useRef(0);
+  const [drawMode, setDrawMode]   = useState(false);
+  const [rectCurrent, setRectCurrent] = useState(null);
+  const poolIdx        = useRef(0);
+  const mapInstanceRef = useRef(null);
+  const rectStart      = useRef(null);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -111,6 +176,7 @@ export default function ZeroStrikeDashboard() {
         <Map
           {...viewState}
           onMove={(e) => setViewState(e.viewState)}
+          onLoad={(evt) => { mapInstanceRef.current = evt.target; }}
           mapboxAccessToken={TOKEN}
           mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
           style={{ width: '100%', height: '100%' }}
@@ -268,32 +334,33 @@ export default function ZeroStrikeDashboard() {
                 <span className="zs-section-label" style={{ color: '#e2e8f0' }}>Live Feed</span>
                 <span className="zs-badge zs-badge-rec zs-pulse" style={{ marginLeft: 'auto' }}>● REC</span>
               </div>
-              <div className="zs-cctv" style={{ height: 64, background: '#000', border: '1px solid rgba(249,115,22,0.35)' }}>
+              <div className="zs-cctv" style={{ height: 64, background: '#000', border: '1px solid rgba(249,115,22,0.35)', position: 'relative' }}>
+                <LiveFeedCamera />
+                {/* Center divider — splits feed into two screens */}
                 <div style={{
-                  position: 'absolute', inset: 0,
-                  background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 24, color: 'rgba(249,115,22,0.35)' }}>videocam</span>
-                  {/* Scanlines */}
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(249,115,22,0.04) 2px, rgba(249,115,22,0.04) 4px)',
-                  }} />
-                  {/* Corner brackets */}
-                  {[
-                    { top: 4, left: 4, borderTop: '1.5px solid rgba(249,115,22,0.85)', borderLeft: '1.5px solid rgba(249,115,22,0.85)' },
-                    { top: 4, right: 4, borderTop: '1.5px solid rgba(249,115,22,0.85)', borderRight: '1.5px solid rgba(249,115,22,0.85)' },
-                    { bottom: 4, left: 4, borderBottom: '1.5px solid rgba(249,115,22,0.85)', borderLeft: '1.5px solid rgba(249,115,22,0.85)' },
-                    { bottom: 4, right: 4, borderBottom: '1.5px solid rgba(249,115,22,0.85)', borderRight: '1.5px solid rgba(249,115,22,0.85)' },
-                  ].map((s, i) => (
-                    <div key={i} style={{ position: 'absolute', width: 8, height: 8, ...s }} />
-                  ))}
-                  <div style={{ position: 'absolute', bottom: 4, left: 6, fontSize: 7, color: 'rgba(249,115,22,0.75)', letterSpacing: '0.06em' }}>
-                    <LiveClock /> — CAM-04
-                  </div>
-                  <div style={{ position: 'absolute', top: 4, right: 6, fontSize: 7, color: 'rgba(239,68,68,0.9)', letterSpacing: '0.1em' }}>REC</div>
+                  position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1,
+                  transform: 'translateX(-50%)',
+                  background: 'rgba(249,115,22,0.5)',
+                  zIndex: 10, pointerEvents: 'none',
+                }} />
+                {/* Scanlines overlay */}
+                <div style={{
+                  position: 'absolute', inset: 0, pointerEvents: 'none',
+                  backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(249,115,22,0.04) 2px, rgba(249,115,22,0.04) 4px)',
+                }} />
+                {/* Corner brackets */}
+                {[
+                  { top: 4, left: 4, borderTop: '1.5px solid rgba(249,115,22,0.85)', borderLeft: '1.5px solid rgba(249,115,22,0.85)' },
+                  { top: 4, right: 4, borderTop: '1.5px solid rgba(249,115,22,0.85)', borderRight: '1.5px solid rgba(249,115,22,0.85)' },
+                  { bottom: 4, left: 4, borderBottom: '1.5px solid rgba(249,115,22,0.85)', borderLeft: '1.5px solid rgba(249,115,22,0.85)' },
+                  { bottom: 4, right: 4, borderBottom: '1.5px solid rgba(249,115,22,0.85)', borderRight: '1.5px solid rgba(249,115,22,0.85)' },
+                ].map((s, i) => (
+                  <div key={i} style={{ position: 'absolute', width: 8, height: 8, ...s }} />
+                ))}
+                <div style={{ position: 'absolute', bottom: 4, left: 6, fontSize: 7, color: 'rgba(249,115,22,0.75)', letterSpacing: '0.06em' }}>
+                  <LiveClock /> — CAM-04
                 </div>
+                <div style={{ position: 'absolute', top: 4, right: 6, fontSize: 7, color: 'rgba(239,68,68,0.9)', letterSpacing: '0.1em' }}>REC</div>
               </div>
             </div>
 
@@ -308,10 +375,14 @@ export default function ZeroStrikeDashboard() {
                 background: 'repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(249,115,22,0.8) 4px, rgba(249,115,22,0.8) 5px)',
               }} />
               <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px 8px 4px' }}>
-                <img
-                  alt="ZeroStrike Drone"
-                  style={{ width: '100%', height: 70, objectFit: 'contain', filter: 'drop-shadow(0 4px 20px rgba(249,115,22,0.4)) brightness(1.3) contrast(1.1)' }}
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTgjcMSJQtq9nd5l9WZyDzr4LSx8-AJPoGmEMdqTgDrIcZKRc1PeuVWtGhD1cvtrOKMXtPEhF6XizW-2Ykq5T9tczGmTgzp05RQgeT6F1YGJSjEHyHqmRN-tBMknUMU8tRCaR1epHTIa772GDs5A2RVzU99yojpKcR68CQyG8XFSQSdzYdXgMXEEio9aC6xhzODE7wmAQVcEMwHOdTchjKTrfOyLrd1yN7oUcC63qqzcTpBGBjlhMHkhDMa-kOntzJINfGActZX0VC"
+                <video
+                  src="/drone%20rotating.MP4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  style={{ width: '100%', height: 70, objectFit: 'contain', filter: 'drop-shadow(0 4px 20px rgba(249,115,22,0.4)) brightness(1.3) contrast(1.1)', display: 'block' }}
+                  title="ZeroStrike Drone"
                 />
               </div>
               <div style={{
@@ -338,7 +409,62 @@ export default function ZeroStrikeDashboard() {
         <div className="zs-main">
 
           {/* Map pass-through area — pointer-events none so scroll/zoom reach Mapbox */}
-          <div className="zs-map-section" style={{ pointerEvents: 'none' }}>
+          <div className="zs-map-section" style={{ pointerEvents: drawMode ? 'auto' : 'none' }}>
+            {/* Draw-rectangle overlay: when active, capture mouse and zoom to selection */}
+            {drawMode && (
+              <div
+                style={{
+                  position: 'absolute', inset: 0, zIndex: 15, cursor: 'crosshair',
+                }}
+                onMouseDown={(e) => {
+                  rectStart.current = { x: e.clientX, y: e.clientY };
+                  setRectCurrent({ x: e.clientX, y: e.clientY });
+                }}
+                onMouseMove={(e) => {
+                  if (rectStart.current) setRectCurrent({ x: e.clientX, y: e.clientY });
+                }}
+                onMouseUp={() => {
+                  const map = mapInstanceRef.current;
+                  const start = rectStart.current;
+                  if (!map || !start || !rectCurrent) return;
+                  const x1 = start.x, y1 = start.y, x2 = rectCurrent.x, y2 = rectCurrent.y;
+                  const minX = Math.min(x1, x2), maxX = Math.max(x1, x2), minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
+                  if (maxX - minX < 8 || maxY - minY < 8) {
+                    rectStart.current = null;
+                    setRectCurrent(null);
+                    setDrawMode(false);
+                    return;
+                  }
+                  const sw = map.unproject([minX, maxY]);
+                  const ne = map.unproject([maxX, minY]);
+                  map.fitBounds([sw, ne], { padding: 40, duration: 800 });
+                  rectStart.current = null;
+                  setRectCurrent(null);
+                  setDrawMode(false);
+                }}
+                onMouseLeave={() => {
+                  if (rectStart.current) {
+                    rectStart.current = null;
+                    setRectCurrent(null);
+                  }
+                }}
+              >
+                {rectStart.current && rectCurrent && (
+                  <div
+                    style={{
+                      position: 'fixed',
+                      left: Math.min(rectStart.current.x, rectCurrent.x),
+                      top: Math.min(rectStart.current.y, rectCurrent.y),
+                      width: Math.abs(rectCurrent.x - rectStart.current.x),
+                      height: Math.abs(rectCurrent.y - rectStart.current.y),
+                      border: '2px solid rgba(249,115,22,0.9)',
+                      background: 'rgba(249,115,22,0.12)',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                )}
+              </div>
+            )}
             {/* Grid + vignette over the map */}
             <div className="zs-map-grid" />
             <div className="zs-map-vignette" />
@@ -363,9 +489,8 @@ export default function ZeroStrikeDashboard() {
             </div>
 
             {/* Coordinate readout — bottom left */}
-            <div style={{
+            <div className="zs-map-coord" style={{
               position: 'absolute', bottom: 10, left: 58, zIndex: 20, pointerEvents: 'none',
-              background: 'rgba(5,5,5,0.85)', border: '1px solid rgba(249,115,22,0.16)',
               padding: '6px 10px',
               display: 'flex', flexDirection: 'column', gap: 3,
             }}>
@@ -383,12 +508,23 @@ export default function ZeroStrikeDashboard() {
 
             {/* Bottom-right map controls */}
             <div className="zs-map-label zs-map-label-bottom" style={{ pointerEvents: 'auto' }}>
-              {[['open_with', 'PAN'], ['crop_free', 'ZOOM'], ['lock', 'LOCK']].map(([icon, label]) => (
-                <button key={label} className="zs-label-btn" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 12 }}>{icon}</span>
-                  {label}
-                </button>
-              ))}
+              <button className="zs-label-btn" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span className="material-icons-outlined" style={{ fontSize: 12 }}>open_with</span>
+                PAN
+              </button>
+              <button
+                className={`zs-label-btn${drawMode ? ' zs-active' : ''}`}
+                style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                onClick={() => setDrawMode((d) => !d)}
+                title={drawMode ? 'Cancel and click again to exit draw mode' : 'Draw a rectangle to zoom to area'}
+              >
+                <span className="material-icons-outlined" style={{ fontSize: 12 }}>crop_free</span>
+                {drawMode ? 'DRAW…' : 'ZOOM'}
+              </button>
+              <button className="zs-label-btn" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span className="material-icons-outlined" style={{ fontSize: 12 }}>lock</span>
+                LOCK
+              </button>
             </div>
           </div>
 

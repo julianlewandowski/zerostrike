@@ -9,7 +9,10 @@ const Index = () => {
   const timeLapse = useTimeLapse();
 
   return (
-    <div className="min-h-screen bg-background text-foreground mt-8">
+    <div
+      className="min-h-screen bg-background text-foreground mt-8"
+      style={{ minHeight: '100vh', backgroundColor: 'hsl(220 20% 7%)', color: 'hsl(210 20% 92%)' }}
+    >
 
       {/* ── Tactical header ── */}
       <header className="border-b border-white/8 px-6 py-2.5 bg-black/60">
