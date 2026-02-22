@@ -12,9 +12,12 @@ import sys
 # ── Make the engine package importable ────────────────────────────────────────
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "engine"))
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from firebase_functions import https_fn
+import firebase_admin
+from firebase_admin import firestore
+from datetime import datetime, timezone
 
 from app.config import AppConfig, DEFAULT_BBOX, DEFAULT_START
 from app.engine.pipeline import compute_threats
@@ -23,6 +26,25 @@ from app.utils.time import parse_time
 
 flask_app = Flask(__name__)
 CORS(flask_app)
+
+# Lazy Firestore init — avoids blocking module load during deploy analysis
+_db = None
+
+def _get_db():
+    global _db
+    if _db is None:
+        try:
+            firebase_admin.get_app()
+        except ValueError:
+            firebase_admin.initialize_app()
+        _db = firestore.client(database_id="zero-strike")
+    return _db
+
+def _get_drop_doc():
+    return _get_db().collection("drops").document("current")
+
+def _get_mission_doc():
+    return _get_db().collection("missions").document("current")
 
 config = AppConfig()
 
@@ -212,6 +234,106 @@ def get_land_risk():
 def get_collisions():
     # Client computes collisions from threats + land-risk; this is a fallback
     return jsonify({"type": "FeatureCollection", "features": []})
+
+
+# ── Drop Payload Endpoints ────────────────────────────────────────────────────
+# Firestore doc: drops/current
+# Fields: status ("idle"|"drop"|"reset"), confirmed (bool), timestamp, confirmedAt
+
+@flask_app.post("/api/drop")
+def trigger_drop():
+    _get_drop_doc().set({
+        "status": "drop",
+        "confirmed": False,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+    return jsonify({"ok": True, "status": "drop"})
+
+
+@flask_app.post("/api/reset-drop")
+def reset_drop():
+    _get_drop_doc().set({
+        "status": "reset",
+        "confirmed": False,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+    return jsonify({"ok": True, "status": "reset"})
+
+
+@flask_app.get("/api/drop-status")
+def drop_status():
+    doc = _get_drop_doc().get()
+    if doc.exists:
+        data = doc.to_dict()
+        return data.get("status", "idle"), 200, {"Content-Type": "text/plain"}
+    return "idle", 200, {"Content-Type": "text/plain"}
+
+
+@flask_app.post("/api/drop-confirm")
+def drop_confirm():
+    _get_drop_doc().update({
+        "status": "idle",
+        "confirmed": True,
+        "confirmedAt": datetime.now(timezone.utc).isoformat(),
+    })
+    return jsonify({"ok": True, "status": "idle"})
+
+
+# ── Mission Dispatch Endpoints ────────────────────────────────────────────────
+# Firestore doc: missions/current
+# Fields: status, waypoints, speed, type, timestamp, droneStatus, droneMessage
+
+@flask_app.post("/api/mission")
+def create_mission():
+    data = request.get_json(force=True)
+    waypoints = data.get("waypoints", [])
+    speed = data.get("speed", 10.0)
+    mission_type = data.get("type", "native")  # "native" or "virtualstick"
+    if len(waypoints) < 1:
+        return jsonify({"ok": False, "error": "Need at least 1 waypoint"}), 400
+    _get_mission_doc().set({
+        "status": "pending",
+        "waypoints": waypoints,
+        "speed": speed,
+        "type": mission_type,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "droneStatus": "waiting",
+        "droneMessage": "",
+    })
+    return jsonify({"ok": True, "status": "pending", "waypointCount": len(waypoints)})
+
+
+@flask_app.get("/api/mission-status")
+def get_mission_status():
+    doc = _get_mission_doc().get()
+    if doc.exists:
+        return jsonify(doc.to_dict())
+    return jsonify({"status": "idle"})
+
+
+@flask_app.post("/api/abort-mission")
+def abort_mission():
+    _get_mission_doc().update({
+        "status": "abort",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+    return jsonify({"ok": True, "status": "abort"})
+
+
+@flask_app.post("/api/mission-update")
+def mission_update():
+    """Called by the drone app to update mission progress."""
+    data = request.get_json(force=True)
+    update = {}
+    if "droneStatus" in data:
+        update["droneStatus"] = data["droneStatus"]
+    if "droneMessage" in data:
+        update["droneMessage"] = data["droneMessage"]
+    if "status" in data:
+        update["status"] = data["status"]
+    if update:
+        _get_mission_doc().update(update)
+    return jsonify({"ok": True})
 
 
 # ── Firebase Cloud Function entry point ───────────────────────────────────────
