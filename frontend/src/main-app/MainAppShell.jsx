@@ -8,7 +8,7 @@ import ScanlineOverlay from './components/hud/ScanlineOverlay';
 import CustomCursor from './components/hud/CustomCursor';
 import TopNav from './components/layout/TopNav';
 import TickerBar from './components/layout/TickerBar';
-import Landing from '../pages/Landing';
+import Landing from './pages/Landing';
 import ZeroStrikeDashboard from './pages/ZeroStrikeDashboard';
 import Fleet from './pages/Fleet';
 import Predictions from './pages/Predictions';

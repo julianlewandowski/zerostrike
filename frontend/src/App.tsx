@@ -1,90 +1,56 @@
-import { useState } from "react";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 // @ts-ignore — main-app is plain JSX
-import MainAppShell from "./main-app/MainAppShell";
+import ZeroStrikeDashboard from "./main-app/pages/ZeroStrikeDashboard";
+// @ts-ignore
+import Fleet from "./main-app/pages/Fleet";
+// @ts-ignore
+import Predictions from "./main-app/pages/Predictions";
+// @ts-ignore
+import { DataProvider } from "./main-app/context/DataContext";
+// @ts-ignore
+import ScanlineOverlay from "./main-app/components/hud/ScanlineOverlay";
+// @ts-ignore
+import CustomCursor from "./main-app/components/hud/CustomCursor";
+// @ts-ignore
+import TopNav from "./main-app/components/layout/TopNav";
+// @ts-ignore
+import TickerBar from "./main-app/components/layout/TickerBar";
+import "./main-app/styles/globals.css";
 import "@/lib/firebase";
 
-type Tab = "casestudy" | "product";
+function CommandShell() {
+  return (
+    <div className="app-shell">
+      <ScanlineOverlay />
+      <TopNav />
+      <TickerBar />
+      <Outlet />
+    </div>
+  );
+}
 
 const App = () => {
-  const [tab, setTab] = useState<Tab>("product");
-
   return (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-
-      {/* ── Global tab switcher ── */}
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 9999,
-          display: "flex",
-          gap: "2px",
-          background: "rgba(0,0,0,0.85)",
-          border: "1px solid rgba(255,255,255,0.12)",
-          borderTop: "none",
-          borderRadius: "0 0 8px 8px",
-          padding: "4px 6px",
-          backdropFilter: "blur(12px)",
-        }}
-      >
-        <button
-          onClick={() => setTab("product")}
-          style={{
-            padding: "4px 16px",
-            fontSize: "9px",
-            fontFamily: "monospace",
-            fontWeight: "bold",
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-            borderRadius: "4px",
-            border: "none",
-            cursor: "pointer",
-            transition: "all 0.2s",
-            background: tab === "product" ? "rgba(0,200,120,0.2)" : "transparent",
-            color: tab === "product" ? "#00e67a" : "rgba(255,255,255,0.4)",
-            outline: tab === "product" ? "1px solid rgba(0,200,120,0.4)" : "none",
-          }}
-        >
-          Product Demo
-        </button>
-        <button
-          onClick={() => setTab("casestudy")}
-          style={{
-            padding: "4px 16px",
-            fontSize: "9px",
-            fontFamily: "monospace",
-            fontWeight: "bold",
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-            borderRadius: "4px",
-            border: "none",
-            cursor: "pointer",
-            transition: "all 0.2s",
-            background: tab === "casestudy" ? "rgba(255,100,50,0.25)" : "transparent",
-            color: tab === "casestudy" ? "#ff6a35" : "rgba(255,255,255,0.4)",
-            outline: tab === "casestudy" ? "1px solid rgba(255,100,50,0.5)" : "none",
-          }}
-        >
-          Case Study
-        </button>
-      </div>
-
-      {/* ── Tab content ── */}
-      <div style={{ display: tab === "casestudy" ? "block" : "none" }}>
-        <Index />
-      </div>
-      <div style={{ display: tab === "product" ? "block" : "none" }}>
-        <MainAppShell isActive={tab === "product"} />
-      </div>
-
+      <BrowserRouter>
+        <CustomCursor />
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/case-study" element={<Index />} />
+          <Route path="/dashboard" element={<ZeroStrikeDashboard />} />
+          <Route element={<DataProvider><CommandShell /></DataProvider>}>
+            <Route path="/fleet"       element={<Fleet />} />
+            <Route path="/predictions" element={<Predictions />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
     </TooltipProvider>
   );
 };
