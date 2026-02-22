@@ -70,22 +70,22 @@ const TheSolution = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card 
+          <Card
             icon={Radar}
             title="we predict with data"
-            desc="Our model ingests satellite imagery, vegetation indices, terrain data, atmospheric readings, and 10 years of fire history. we score every square kilometer for ignition risk, updated continuously."
+            desc="We pull from 120 data sources — NASA satellites, ESA geospatial datasets, a decade of fire history, and live moisture readings — into a single risk layer updated every hour. Our model scores land risk, strike probability, and consequence to flag the highest-risk dry lightning zones."
             delay={0.3}
           />
-          <Card 
+          <Card
             icon={Brain}
             title="we decide with predictions"
-            desc="When a storm trajectory collides with a high-risk zone, our engine calculates optimal drone deployment in under 3 seconds. No committees. No phone calls. No delays."
+            desc="The moment a storm cell trajectory intersects a red zone, our system flags it, identifies which drone in the fleet can intercept fastest, and generates a dispatch route in under three seconds. No committees. No phone calls. No delays."
             delay={0.5}
           />
-          <Card 
+          <Card
             icon={Plane}
             title="we act on decisions"
-            desc="Cloud-seeding drones intercept storms at calculated intercept points, converting dry lightning threats into harmless wet storms before the first spark ever lands."
+            desc="Drones fly to the calculated intercept point and release cloud-seeding agents, triggering precipitation over the high-risk area before a single spark lands. We reduce dry lightning ignition risk by 95% — cutting wildfire starts by 58%."
             delay={0.7}
           />
         </div>
