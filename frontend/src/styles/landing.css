@@ -145,21 +145,35 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start; /* Align left */
+  text-align: left;        /* Align left */
   padding: 180px 40px 140px;
-  max-width: 960px;
+  max-width: 1280px;       /* Wider to accommodate side-by-side feel */
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
   text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
   
-  /* Glass panel */
-  background: rgba(2, 4, 8, 0.6); 
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  /* Remove glass panel background from the whole section to let globe shine */
+  background: transparent; 
+  backdrop-filter: none;
+  border: none;
   margin-bottom: 60px;
+}
+
+.landing-hero-content {
+  max-width: 600px; /* Limit width to left side */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  
+  /* Add glass effect just to the content block if needed, or keep clean */
+  /* Let's add a subtle gradient backing for readability against stars */
+  background: radial-gradient(circle at center, rgba(2, 4, 8, 0.8) 0%, transparent 100%);
+  padding: 40px;
+  margin-left: -40px; /* Pull back slightly to edge */
+  padding-left: 40px;
+  border-radius: 0 40px 40px 0;
 }
 
 .landing-eyebrow {
@@ -176,32 +190,32 @@
   text-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
 }
 
-.landing-eyebrow::before,
-.landing-eyebrow::after {
+.landing-eyebrow::before {
   content: '';
   width: 40px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--cyan));
 }
-.landing-eyebrow::after {
-  background: linear-gradient(90deg, var(--cyan), transparent);
-}
+/* Removed ::after for left-aligned look */
 
 .landing-wordmark {
-  font-family: var(--font-ui);
+  font-family: var(--font-hero);
   font-size: clamp(64px, 10vw, 128px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 900;
+  letter-spacing: -0.04em;
   color: #fff;
   line-height: 0.9;
   margin: 0;
   filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.2));
+  /* Add a slight skew for speed/adventure */
+  transform: skewX(-5deg);
 }
 
 .landing-tagline {
   display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 13px;
+  font-family: var(--font-tech);
+  font-size: 14px;
+  font-weight: 600;
   color: var(--cyan);
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -217,13 +231,14 @@
   font-size: 16px;
   color: #cbd5e1;
   line-height: 1.8;
-  max-width: 600px;
-  margin: 40px auto;
+  max-width: 500px;
+  margin: 40px 0; /* Remove auto margins */
   text-shadow: 0 2px 8px rgba(0,0,0,0.8);
   background: rgba(2, 4, 8, 0.4);
   padding: 16px;
   border-radius: 4px;
   backdrop-filter: blur(4px);
+  border-left: 2px solid var(--cyan); /* Tech accent */
 }
 
 /* ─── CTA Button ────────────────────────────────────────────────────── */
@@ -256,6 +271,41 @@
   transform: translateY(0) scale(0.98);
 }
 
+.landing-cta-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.landing-cta-secondary {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--cyan);
+  background: transparent;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 17px 40px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  display: inline-block;
+}
+
+.landing-cta-secondary:hover {
+  border-color: var(--cyan);
+  background: rgba(56, 189, 248, 0.08);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.2);
+  transform: translateY(-2px);
+}
+
+.landing-cta-secondary:active {
+  transform: translateY(0);
+}
+
 /* ─── Stats Row ─────────────────────────────────────────────────────── */
 .landing-stats {
   display: flex;
@@ -265,12 +315,14 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-wrap: wrap;
-  justify-content: center;
-  width: 100vw;
+  justify-content: flex-start; /* Align left */
+  width: 100%;
   /* Transparent to float over parallax */
   background: transparent;
   backdrop-filter: none;
   border: none;
+  /* Add a line separator instead */
+  border-top: 1px solid rgba(56, 189, 248, 0.2);
 }
 
 .landing-stat {

@@ -21,16 +21,14 @@ export default function Landing() {
 
           <h1 className="landing-wordmark">ZEROSTRIKE</h1>
 
-          <div className="landing-tagline">Wildfire Tactical Command</div>
+          <div className="landing-tagline">The Palantir for Wildfires</div>
 
           <p className="landing-desc">
-            An AI-powered platform that predicts dry lightning storm threats 6–18 hours
-            in advance and dispatches cloud-seeding drone swarms to neutralize fire risk
-            before ignition.
+            We prevent wildfires by stopping dry lightning strikes with a prediction model and agent orchestration layer that deploys autonomous cloud seeding drones.
           </p>
 
           <button className="landing-cta" onClick={handleEnter}>
-            ENTER COMMAND CENTER
+            TRY THE DEMO
           </button>
 
           {/* Stats */}
