@@ -9,7 +9,7 @@ import CustomCursor from './components/hud/CustomCursor';
 import TopNav from './components/layout/TopNav';
 import TickerBar from './components/layout/TickerBar';
 import Landing from './pages/Landing';
-import AgripilotDashboard from './pages/AgripilotDashboard';
+import ZeroStrikeDashboard from './pages/ZeroStrikeDashboard';
 import Fleet from './pages/Fleet';
 import Predictions from './pages/Predictions';
 import { DataProvider } from './context/DataContext';
@@ -33,7 +33,7 @@ export default function MainAppShell({ isActive }) {
       <Routes>
         <Route path="/" element={<Landing />} />
         {/* Dashboard is standalone — no TopNav/TickerBar overlay */}
-        <Route path="/dashboard" element={<AgripilotDashboard />} />
+        <Route path="/dashboard" element={<ZeroStrikeDashboard />} />
         <Route element={<DataProvider><CommandShell /></DataProvider>}>
           <Route path="/fleet"       element={<Fleet />} />
           <Route path="/predictions" element={<Predictions />} />

@@ -156,7 +156,7 @@ function buildTrajectoryGeoJSON(threats) {
 
 const DEFAULT_VIEW = { longitude: 14, latitude: 46, zoom: 4.2 };
 
-export default function TacticalMap() {
+export default function TacticalMap({ drawMode: externalDrawMode, onDrawModeChange }) {
   const { fleet, threats, landRisk, collisions } = useData();
 
   const [layers, setLayers] = useState({
@@ -164,7 +164,9 @@ export default function TacticalMap() {
   });
   const [viewState, setViewState]   = useState({ ...DEFAULT_VIEW, pitch: 0, bearing: 0 });
   const [mapMode, setMapMode]       = useState('satellite');
-  const [drawMode, setDrawMode]     = useState(false);
+  const [internalDrawMode, setInternalDrawMode] = useState(false);
+  const drawMode    = externalDrawMode    !== undefined ? externalDrawMode    : internalDrawMode;
+  const setDrawMode = onDrawModeChange    !== undefined ? onDrawModeChange    : setInternalDrawMode;
   const [selectionBox, setSelectionBox] = useState(null);
   const [mapLoaded, setMapLoaded]   = useState(false);
   const mapRef           = useRef(null);
@@ -182,6 +184,7 @@ export default function TacticalMap() {
   );
 
   const switchMapMode = useCallback((mode) => {
+    setMapLoaded(false); // style is about to reload — block Sources until onLoad fires again
     setMapMode(mode);
     setViewState((prev) => ({
       ...prev,
@@ -342,48 +345,44 @@ export default function TacticalMap() {
       >
         <NavigationControl position="top-right" showCompass={false} />
 
-        {/* Selection box highlight */}
-        {selectionGeoJSON && (
+        {/* All Sources are gated behind mapLoaded to prevent "Style not done loading" errors
+            when the map style changes (e.g. satellite → 3D) and the style reloads */}
+        {mapLoaded && selectionGeoJSON && (
           <Source id="selection" type="geojson" data={selectionGeoJSON}>
             <Layer {...SELECT_FILL} />
             <Layer {...SELECT_LINE} />
           </Source>
         )}
 
-        {/* Land risk polygons — rendered first so threats/coverage appear on top */}
-        {layers.landRisk && landRisk && (
+        {mapLoaded && layers.landRisk && landRisk && (
           <Source id="land-risk" type="geojson" data={landRisk}>
             <Layer {...LAND_RISK_FILL} />
             <Layer {...LAND_RISK_LINE} />
           </Source>
         )}
 
-        {/* Drone coverage circles */}
-        {layers.coverage && (
+        {mapLoaded && layers.coverage && (
           <Source id="coverage" type="geojson" data={coverageGeoJSON}>
             <Layer {...COVER_FILL} />
             <Layer {...COVER_LINE} />
           </Source>
         )}
 
-        {/* Threat zones */}
-        {layers.threats && (
+        {mapLoaded && layers.threats && (
           <Source id="threats" type="geojson" data={threatGeoJSON}>
             <Layer {...THREAT_FILL} />
             <Layer {...THREAT_LINE} />
           </Source>
         )}
 
-        {/* Storm trajectory arrows */}
-        {layers.threats && (
+        {mapLoaded && layers.threats && (
           <Source id="trajectories" type="geojson" data={trajectoryGeoJSON}>
             <Layer {...TRAJECTORY_LINE} />
             <Layer {...TRAJECTORY_TIP} />
           </Source>
         )}
 
-        {/* Collision zones — where dangerous sky meets dangerous ground */}
-        {layers.collisions && collisions && (
+        {mapLoaded && layers.collisions && collisions && (
           <Source id="collisions" type="geojson" data={collisions}>
             <Layer {...COLLISION_FILL} />
             <Layer {...COLLISION_LINE} />
