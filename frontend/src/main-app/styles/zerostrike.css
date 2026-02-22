@@ -480,6 +480,35 @@
   margin-left: 2px;
 }
 
+/* ── Search transition: squares fade in and out ────────────────────── */
+@keyframes zs-search-square {
+  0%   { opacity: 0; }
+  15%  { opacity: 0.5; }
+  50%  { opacity: 0.35; }
+  85%  { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+.zs-search-squares {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 2px;
+  padding: 4px;
+}
+.zs-search-square {
+  background: rgba(249, 115, 22, 0.25);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  animation: zs-search-square 2.8s ease-in-out forwards;
+}
+.zs-search-square:nth-child(odd) { animation-delay: 0.05s; }
+.zs-search-square:nth-child(3n) { animation-delay: 0.1s; }
+.zs-search-square:nth-child(4n) { animation-delay: 0.15s; }
+.zs-search-square:nth-child(5n) { animation-delay: 0.08s; }
+
 /* ── Search input ───────────────────────────────────────────────────── */
 .zs-search {
   background: rgba(255, 255, 255, 0.04);

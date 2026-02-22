@@ -77,12 +77,89 @@ function LiveClock() {
   return <>{p(now.getHours())}:{p(now.getMinutes())}:{p(now.getSeconds())}</>;
 }
 
-/* ── Sparkline SVG ───────────────────────────────────────────────────── */
+/* ── Sparkline SVG (static points string) ─────────────────────────────── */
 function Spark({ points, stroke }) {
   return (
     <svg width="44" height="14" viewBox="0 0 44 14" style={{ flexShrink: 0 }}>
       <polyline points={points} fill="none" stroke={stroke} strokeWidth="1.8" strokeLinecap="round" opacity="0.95" />
     </svg>
+  );
+}
+
+/* ── Live sparkline: points array 0–14, newest at right ───────────────── */
+function LiveSpark({ points, stroke }) {
+  if (!points.length) return <svg width="44" height="14" viewBox="0 0 44 14" style={{ flexShrink: 0 }} />;
+  const w = 44, h = 14;
+  const n = points.length;
+  const pts = points.map((y, i) => `${(i / Math.max(1, n - 1)) * w},${h - Math.max(0, Math.min(h, y))}`).join(' ');
+  return (
+    <svg width="44" height="14" viewBox="0 0 44 14" style={{ flexShrink: 0 }}>
+      <polyline
+        points={pts}
+        fill="none"
+        stroke={stroke}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.95"
+      />
+    </svg>
+  );
+}
+
+/* ── Key Metrics with realistic live movement ─────────────────────────── */
+const KEY_METRICS_CONFIG = [
+  { label: 'ACTIVE THREATS',  baseVal: 12,  min: 9,  max: 15,  color: '#ef4444', unit: '', fixed: false },
+  { label: 'DRONES DEPLOYED', baseVal: 2,   min: 1,  max: 3,   color: '#22c55e', unit: '', fixed: true },
+  { label: 'AREA MONITORED',  baseVal: 243, min: 238, max: 248, color: '#f97316', unit: ' ha', fixed: false },
+  { label: 'AVG RESPONSE',    baseVal: 4.2, min: 3.6, max: 4.8, color: '#facc15', unit: ' m', fixed: false },
+];
+
+function KeyMetricsLive() {
+  const [metrics, setMetrics] = useState(() =>
+    KEY_METRICS_CONFIG.map(({ baseVal }) => ({
+      val: baseVal,
+      points: Array.from({ length: 18 }, (_, j) => 4 + (Math.sin(j * 0.5) * 3) + Math.random() * 2),
+    }))
+  );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMetrics((prev) =>
+        prev.map((m, i) => {
+          const cfg = KEY_METRICS_CONFIG[i];
+          const lastY = m.points[m.points.length - 1] ?? 7;
+          const delta = (Math.random() - 0.5) * 1.8;
+          const newY = Math.max(1.5, Math.min(12.5, lastY + delta));
+          const newPoints = [...m.points.slice(1), newY];
+          const valDelta = (Math.random() - 0.5) * (cfg.unit === ' m' ? 0.15 : cfg.unit === ' ha' ? 1.2 : 0.4);
+          const newVal = cfg.fixed ? cfg.baseVal : Math.max(cfg.min, Math.min(cfg.max, m.val + valDelta));
+          return { val: newVal, points: newPoints };
+        })
+      );
+    }, 1100);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {KEY_METRICS_CONFIG.map((cfg, i) => {
+        const m = metrics[i];
+        const val = cfg.fixed ? cfg.baseVal : m.val;
+        const displayVal = cfg.unit === ' m' ? val.toFixed(1) : Math.round(val);
+        return (
+          <div key={cfg.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 9, color: 'rgba(200,205,214,0.8)', letterSpacing: '0.08em' }}>{cfg.label}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: cfg.color, transition: 'opacity 0.2s' }}>
+                {displayVal}{cfg.unit}
+              </span>
+              <LiveSpark points={m.points} stroke={cfg.color} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -153,9 +230,54 @@ export default function ZeroStrikeDashboard() {
   const [viewState, setViewState] = useState(INIT_VIEW);
   const [drawMode, setDrawMode]   = useState(false);
   const [rectCurrent, setRectCurrent] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchStatus, setSearchStatus] = useState(''); // '' | 'loading' | 'error'
+  const [searchTransitioning, setSearchTransitioning] = useState(false);
   const poolIdx        = useRef(0);
   const mapInstanceRef = useRef(null);
   const rectStart      = useRef(null);
+
+  const handleSearch = async (e) => {
+    e?.preventDefault();
+    const q = searchQuery.trim();
+    if (!q || !TOKEN) return;
+    setSearchStatus('loading');
+    try {
+      const res = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${TOKEN}&limit=1`
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Search failed');
+      const feature = data.features?.[0];
+      if (!feature) {
+        setSearchStatus('error');
+        return;
+      }
+      const [lng, lat] = feature.center;
+      const bbox = feature.bbox;
+      const map = mapInstanceRef.current;
+      const duration = 2800; // Slower so we can appreciate the animation
+      const onTransitionEnd = () => {
+        const c = map?.getCenter();
+        if (c) setViewState((prev) => ({ ...prev, longitude: c.lng, latitude: c.lat, zoom: map.getZoom() }));
+        setTimeout(() => setSearchTransitioning(false), 400); // Let squares fade out
+      };
+      setSearchTransitioning(true);
+      if (map && bbox && bbox.length === 4) {
+        map.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], { padding: 60, duration });
+        map.once('moveend', onTransitionEnd);
+      } else if (map) {
+        map.flyTo({ center: [lng, lat], zoom: 12, duration });
+        map.once('moveend', onTransitionEnd);
+      } else {
+        setViewState((prev) => ({ ...prev, longitude: lng, latitude: lat, zoom: 12 }));
+        setTimeout(() => setSearchTransitioning(false), 400);
+      }
+      setSearchStatus('');
+    } catch (err) {
+      setSearchStatus('error');
+    }
+  };
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -183,6 +305,15 @@ export default function ZeroStrikeDashboard() {
           attributionControl={false}
         />
       </div>
+
+      {/* ── Search transition: squares fade in/out over the map ── */}
+      {searchTransitioning && (
+        <div className="zs-search-squares">
+          {Array.from({ length: 120 }, (_, i) => (
+            <div key={i} className="zs-search-square" />
+          ))}
+        </div>
+      )}
 
       {/* ── UI layer ── */}
       <div className="zs-ui">
@@ -213,13 +344,26 @@ export default function ZeroStrikeDashboard() {
               </span>
             </div>
 
-            <div style={{ position: 'relative' }}>
+            <form style={{ position: 'relative' }} onSubmit={handleSearch}>
               <span className="material-icons-outlined" style={{
                 position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
                 fontSize: 14, color: 'rgba(249,115,22,0.5)',
               }}>search</span>
-              <input className="zs-search" placeholder="SEARCH MISSION PARAMS" type="text" />
-            </div>
+              <input
+                className="zs-search"
+                placeholder="Search place or address…"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setSearchStatus(''); }}
+                onKeyDown={(e) => e.key === 'Escape' && (setSearchQuery(''), setSearchStatus(''))}
+              />
+              {searchStatus === 'loading' && (
+                <span style={{ position: 'absolute', right: 32, top: '50%', transform: 'translateY(-50%)', fontSize: 10, color: 'rgba(249,115,22,0.7)' }}>Searching…</span>
+              )}
+              {searchStatus === 'error' && (
+                <span style={{ position: 'absolute', right: 32, top: '50%', transform: 'translateY(-50%)', fontSize: 9, color: 'rgba(239,68,68,0.9)' }}>Not found</span>
+              )}
+            </form>
           </div>
 
           {/* Right: telemetry */}
@@ -300,29 +444,14 @@ export default function ZeroStrikeDashboard() {
 
             <div className="zs-col-sep" />
 
-            {/* 3 — Key metrics */}
+            {/* 3 — Key metrics (live values + moving sparklines) */}
             <div className="zs-col">
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <span className="material-icons-outlined" style={{ fontSize: 14, color: '#f97316' }}>analytics</span>
                 <span className="zs-section-label" style={{ color: '#e2e8f0' }}>Key Metrics</span>
                 <span style={{ marginLeft: 'auto', fontSize: 8, color: 'rgba(249,115,22,0.9)', letterSpacing: '0.1em' }}>REAL-TIME</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {[
-                  { label: 'ACTIVE THREATS',  val: '12',    color: '#ef4444', pts: '0,10 6,8 12,11 18,6 24,9 30,4 36,7 44,3' },
-                  { label: 'DRONES DEPLOYED', val: '8',     color: '#22c55e', pts: '0,12 6,10 12,8 18,9 24,6 30,5 36,4 44,2' },
-                  { label: 'AREA MONITORED',  val: '243 ha',color: '#f97316', pts: '0,7 6,6 12,7 18,5 24,6 30,4 36,5 44,3' },
-                  { label: 'AVG RESPONSE',    val: '4.2 m', color: '#facc15', pts: '0,4 6,6 12,5 18,8 24,6 30,7 36,5 44,6' },
-                ].map(({ label, val, color, pts }) => (
-                  <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 9, color: 'rgba(200,205,214,0.8)', letterSpacing: '0.08em' }}>{label}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color }}>{val}</span>
-                      <Spark points={pts} stroke={color} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <KeyMetricsLive />
             </div>
 
             <div className="zs-col-sep" />
