@@ -476,7 +476,7 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Stats */}
+          {/* Stats 
           <div className="landing-stats">
             <div className="landing-stat">
               <span className="landing-stat-value">847</span>
@@ -495,6 +495,7 @@ export default function Landing() {
               <span className="landing-stat-label">Uncontrolled Ignitions</span>
             </div>
           </div>
+          */}
         </section>
 
         {/* ── New Sections ──────────────────────────────────────── */}

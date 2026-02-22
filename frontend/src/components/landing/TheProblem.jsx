@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 
 const Stat = ({ value, label, delay = 0 }) => {
@@ -27,6 +27,105 @@ const Stat = ({ value, label, delay = 0 }) => {
   );
 };
 
+const TacticalMapVisual = () => {
+  // Generate random "terrain" data points
+  const terrainPath = "M0,600 L50,580 L120,590 L200,550 L300,570 L450,520 L550,540 L700,500 L850,520 L950,480 L1000,600 Z";
+  
+  return (
+    <div className="relative w-full h-full bg-[#050a14] overflow-hidden">
+      {/* 1. Grid Background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,0.02)_1px,transparent_1px)] bg-[size:160px_160px]" />
+
+      {/* 2. Abstract Terrain / Topography Map (SVG) */}
+      <svg className="absolute inset-0 w-full h-full opacity-20" preserveAspectRatio="none">
+        {/* Contour Lines */}
+        <path d="M-100,400 Q200,300 400,450 T900,400" fill="none" stroke="#38bdf8" strokeWidth="1" strokeOpacity="0.3" />
+        <path d="M-100,450 Q200,350 400,500 T900,450" fill="none" stroke="#38bdf8" strokeWidth="1" strokeOpacity="0.2" />
+        <path d="M-100,500 Q200,400 400,550 T900,500" fill="none" stroke="#38bdf8" strokeWidth="1" strokeOpacity="0.1" />
+        
+        {/* Danger Zone Polygon */}
+        <path d="M300,200 L500,150 L600,300 L450,400 L250,350 Z" fill="rgba(239, 68, 68, 0.05)" stroke="rgba(239, 68, 68, 0.3)" strokeDasharray="4 4" />
+      </svg>
+
+      {/* 3. Fire Spread Visualization */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full flex items-center justify-center">
+        {/* Core Fire */}
+        <div className="relative">
+          <motion.div 
+            animate={{ scale: [1, 1.2, 1], opacity: [0.6, 0.8, 0.6] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="w-32 h-32 bg-red-600/20 rounded-full blur-xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+          />
+          <motion.div 
+            animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+            className="w-48 h-48 bg-orange-600/10 rounded-full blur-2xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+          />
+          
+          {/* Digital Fire Particles */}
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-red-500 rounded-full"
+              initial={{ x: 0, y: 0, opacity: 1 }}
+              animate={{ 
+                x: (Math.random() - 0.5) * 200, 
+                y: (Math.random() - 0.5) * 200, 
+                opacity: 0 
+              }}
+              transition={{ 
+                duration: 2 + Math.random() * 2, 
+                repeat: Infinity, 
+                delay: Math.random() * 2 
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* 4. Scanning Radar Line */}
+      <motion.div 
+        className="absolute top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-red-500/50 to-transparent z-10"
+        animate={{ left: ["0%", "100%"] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+      >
+        <div className="absolute top-0 bottom-0 left-0 w-20 bg-gradient-to-r from-red-500/10 to-transparent" />
+      </motion.div>
+
+      {/* 5. HUD Overlays */}
+      <div className="absolute top-4 left-4 p-2 border border-red-900/50 bg-black/60 backdrop-blur-sm rounded text-[10px] font-mono text-red-400">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+          ACTIVE IGNITION DETECTED
+        </div>
+        <div className="text-red-500/70">SECTOR 7G // UNCONTAINED</div>
+      </div>
+
+      <div className="absolute bottom-4 right-4 text-right">
+        <div className="text-[10px] font-mono text-slate-500 mb-1">GROWTH RATE</div>
+        <div className="text-2xl font-mono font-bold text-red-500 tracking-wider">
+          <motion.span 
+            animate={{ opacity: [1, 0.5, 1] }} 
+            transition={{ duration: 0.5, repeat: Infinity }}
+          >
+            +124
+          </motion.span>
+          <span className="text-sm ml-1 text-red-800">ha/hr</span>
+        </div>
+      </div>
+
+      {/* Random Data Points */}
+      <div className="absolute top-1/3 right-1/4 w-2 h-2 border border-cyan-500/50 rounded-full" />
+      <div className="absolute bottom-1/3 left-1/4 w-2 h-2 border border-cyan-500/50 rounded-full" />
+      <svg className="absolute inset-0 pointer-events-none">
+        <line x1="25%" y1="66%" x2="30%" y2="60%" stroke="rgba(56,189,248,0.2)" strokeWidth="1" />
+        <circle cx="30%" cy="60%" r="2" fill="rgba(56,189,248,0.5)" />
+      </svg>
+    </div>
+  );
+};
+
 const TheProblem = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-20%" });
@@ -48,10 +147,9 @@ const TheProblem = () => {
             >
               <div className="flex items-center space-x-2 mb-6">
                 <div className="h-[2px] w-8 bg-red-500" />
-                <span className="text-red-500 font-mono text-sm tracking-[0.2em]">CRITICAL THREAT</span>
               </div>
               
-              <h2 className="text-5xl md:text-6xl font-display font-bold text-white mb-8 leading-tight">
+              <h2 className="text-5xl md:text-7xl font-hero font-black text-white mb-8 leading-[0.9] tracking-tighter italic">
                 Every Year,<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-600">
                   We're Losing.
@@ -59,7 +157,12 @@ const TheProblem = () => {
               </h2>
               
               <p className="text-lg text-slate-400 leading-relaxed mb-12 border-l border-slate-700 pl-6">
-                Dry lightning — strikes from storms that produce no rain — ignites bone-dry terrain with zero warning and zero suppression in place. By the time humans detect the fire, it's already out of control. Current systems rely on people watching dashboards, making phone calls, coordinating across agencies. The technology to predict these storms exists. The technology to neutralize them exists. But nobody has connected them — until now.
+                Wildfires cause massive damage every year. Last year alone, they caused $225 billion in direct economic damage worldwide, and hundreds of lives lost.
+                Reponse times to wildfires are too slow (often 4-6 hours), and by then it's too late.
+                Meanwhile, dry lightning strikes are the leading cause of wildfires, accounting for 60% of all wildfires. This is when lightning strikes from storms that produce no rain, and ignites dry terrain with zero warning and suppression.
+                By the time humans intervene, it's already out of control.
+                Current systems rely on people watching dashboards, making phone calls, coordinating across agencies.
+                The technology to predict these strikes exists. The technology to neutralize them exists. But nobody has connected them before, until now.
               </p>
             </motion.div>
 
@@ -76,44 +179,12 @@ const TheProblem = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
             transition={{ duration: 1 }}
-            className="relative h-[600px] w-full bg-slate-900/50 rounded-lg border border-slate-800 overflow-hidden group"
+            className="relative h-[500px] w-full bg-slate-900/50 rounded-lg border border-slate-800 overflow-hidden group shadow-2xl shadow-red-900/10"
           >
-            {/* Map Background Layer */}
-            <div className="absolute inset-0 opacity-40 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/-118.2437,34.0522,9,0/800x600?access_token=pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbGZ5N3R5aGgwMDVnM3Bwa3lzM3B4bXF1In0.example')] bg-cover bg-center grayscale mix-blend-luminosity" />
+            <TacticalMapVisual />
             
-            {/* Threat Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-red-900/20 to-transparent mix-blend-overlay" />
-            
-            {/* Animated Fire Spread */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-500/20 blur-[100px] rounded-full animate-pulse-fire" />
-            
-            {/* Grid Overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]" />
-
-            {/* UI Elements */}
-            <div className="absolute top-6 left-6 right-6 flex justify-between items-start">
-              <div className="bg-black/80 backdrop-blur border border-red-500/30 p-3 rounded text-xs font-mono text-red-400">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
-                  WILDFIRE DETECTED
-                </div>
-                <div>LAT: 34.0522 N / LON: 118.2437 W</div>
-              </div>
-              <div className="bg-black/80 backdrop-blur border border-slate-700 p-3 rounded text-xs font-mono text-slate-400 text-right">
-                <div>RESPONSE DELAY</div>
-                <div className="text-2xl text-white font-bold">04:12:00</div>
-              </div>
-            </div>
-
-            {/* Central Warning */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-              <div className="w-32 h-32 border border-red-500/50 rounded-full flex items-center justify-center animate-[spin_10s_linear_infinite]">
-                <div className="w-24 h-24 border border-red-500/30 rounded-full border-dashed" />
-              </div>
-              <div className="mt-4 bg-red-950/80 text-red-500 px-4 py-1 text-xs font-mono tracking-widest border border-red-500/50">
-                UNCONTROLLED
-              </div>
-            </div>
+            {/* Vignette Overlay */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(2,4,8,0.8)_100%)] pointer-events-none" />
           </motion.div>
         </div>
       </div>
