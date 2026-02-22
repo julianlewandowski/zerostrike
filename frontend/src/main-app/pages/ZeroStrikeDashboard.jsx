@@ -1,0 +1,474 @@
+import { useState, useEffect, useRef } from 'react';
+import Map from 'react-map-gl/mapbox';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import '../styles/zerostrike.css';
+
+const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+
+/* ── Coordinates display ─────────────────────────────────────────────── */
+const INIT_VIEW = { longitude: -122.05, latitude: 37.41, zoom: 10.5, pitch: 0, bearing: 0 };
+
+/* ── Agent feed data ─────────────────────────────────────────────────── */
+const INIT_ENTRIES = [
+  { time: '14:20:41', icon: 'gps_fixed',      color: '#ef4444', msg: 'Collision detected: Cell-3 → SCU corridor' },
+  { time: '14:20:38', icon: 'flight_takeoff',  color: '#60a5fa', msg: 'Dispatching drone-2 from Moffett' },
+  { time: '14:20:35', icon: 'warning',         color: '#facc15', msg: 'Reclassifying zone r25c52 → critical' },
+  { time: '14:20:31', icon: 'route',           color: '#4ade80', msg: 'Route optimized: ETA 10.3 min' },
+  { time: '14:20:27', icon: 'radar',           color: '#94a3b8', msg: 'Perimeter scan complete — sector 7 clear' },
+  { time: '14:20:23', icon: 'gps_fixed',      color: '#ef4444', msg: 'Thermal anomaly flagged: grid r12c44' },
+  { time: '14:20:19', icon: 'flight_takeoff',  color: '#60a5fa', msg: 'Drone-5 RTB — battery at 18%' },
+  { time: '14:20:15', icon: 'auto_fix_high',   color: '#f97316', msg: 'Pattern match: swarm behavior in zone D' },
+  { time: '14:20:11', icon: 'route',           color: '#4ade80', msg: 'Reassigning drone-3 to corridor north' },
+  { time: '14:20:07', icon: 'sensors',         color: '#22d3ee', msg: 'LIDAR sweep — obstacle map updated' },
+  { time: '14:20:03', icon: 'gps_fixed',      color: '#ef4444', msg: 'Intrusion alert: boundary fence sector 2' },
+  { time: '14:19:58', icon: 'warning',         color: '#facc15', msg: 'Risk escalation: zone r30c10 → elevated' },
+  { time: '14:19:54', icon: 'flight_takeoff',  color: '#60a5fa', msg: 'Drone-1 holding pattern — awaiting clearance' },
+  { time: '14:19:49', icon: 'alt_route',       color: '#4ade80', msg: 'Alternate path computed: avoiding no-fly zone' },
+  { time: '14:19:44', icon: 'radar',           color: '#94a3b8', msg: 'Acoustic sensor ping — sector 4 nominal' },
+  { time: '14:19:39', icon: 'crisis_alert',    color: '#ef4444', msg: 'Movement cluster detected: east perimeter' },
+  { time: '14:19:34', icon: 'auto_fix_high',   color: '#f97316', msg: 'Object ID: vehicle — confidence 94.2%' },
+  { time: '14:19:29', icon: 'flight_takeoff',  color: '#60a5fa', msg: 'Dispatching drone-4 to intercept point' },
+  { time: '14:19:24', icon: 'route',           color: '#4ade80', msg: 'Geofence updated — new boundary active' },
+  { time: '14:19:19', icon: 'sensors',         color: '#22d3ee', msg: 'IR camera calibrated — thermal baseline set' },
+];
+
+const LIVE_POOL = [
+  { icon: 'gps_fixed',     color: '#ef4444', msg: 'Motion spike: quadrant NW-3 active' },
+  { icon: 'flight_takeoff', color: '#60a5fa', msg: 'Drone-6 launched — heading bearing 045°' },
+  { icon: 'warning',        color: '#facc15', msg: 'Threat level adjusted: zone r18c22 → watch' },
+  { icon: 'route',          color: '#4ade80', msg: 'Convoy route recalculated: +2.1 min' },
+  { icon: 'radar',          color: '#94a3b8', msg: 'Full sweep complete — 97.3% coverage' },
+  { icon: 'crisis_alert',   color: '#ef4444', msg: 'Anomalous RF signature — triangulating' },
+  { icon: 'auto_fix_high',  color: '#f97316', msg: 'Classification update: fauna — false positive' },
+  { icon: 'flight_takeoff', color: '#60a5fa', msg: 'Drone-2 loiter extended — high-value target' },
+  { icon: 'alt_route',      color: '#4ade80', msg: 'Waypoint inserted: emergency corridor B' },
+  { icon: 'sensors',        color: '#22d3ee', msg: 'Satellite uplink confirmed — data synced' },
+];
+
+/* ── Square cursor ───────────────────────────────────────────────────── */
+function SquareCursor() {
+  const [pos, setPos] = useState({ x: -200, y: -200 });
+  useEffect(() => {
+    const move = (e) => setPos({ x: e.clientX, y: e.clientY });
+    window.addEventListener('mousemove', move);
+    return () => window.removeEventListener('mousemove', move);
+  }, []);
+  return (
+    <div className="zs-cursor" style={{ left: pos.x, top: pos.y }}>
+      <div className="zs-cursor-tl" />
+      <div className="zs-cursor-tr" />
+      <div className="zs-cursor-bl" />
+      <div className="zs-cursor-br" />
+      <div className="zs-cursor-h" />
+      <div className="zs-cursor-v" />
+      <div className="zs-cursor-dot" />
+    </div>
+  );
+}
+
+/* ── Live clock ──────────────────────────────────────────────────────── */
+function LiveClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const p = (n) => String(n).padStart(2, '0');
+  return <>{p(now.getHours())}:{p(now.getMinutes())}:{p(now.getSeconds())}</>;
+}
+
+/* ── Sparkline SVG ───────────────────────────────────────────────────── */
+function Spark({ points, stroke }) {
+  return (
+    <svg width="44" height="14" viewBox="0 0 44 14" style={{ flexShrink: 0 }}>
+      <polyline points={points} fill="none" stroke={stroke} strokeWidth="1.8" strokeLinecap="round" opacity="0.95" />
+    </svg>
+  );
+}
+
+/* ── Main dashboard ──────────────────────────────────────────────────── */
+export default function ZeroStrikeDashboard() {
+  const [entries, setEntries]     = useState(INIT_ENTRIES);
+  const [viewState, setViewState] = useState(INIT_VIEW);
+  const poolIdx = useRef(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const t    = new Date().toTimeString().slice(0, 8);
+      const pool = LIVE_POOL[poolIdx.current % LIVE_POOL.length];
+      setEntries((prev) => [{ ...pool, time: t }, ...prev].slice(0, 50));
+      poolIdx.current++;
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="zs-shell">
+      <SquareCursor />
+
+      {/* ── Full-screen Mapbox background ── */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0 }}>
+        <Map
+          {...viewState}
+          onMove={(e) => setViewState(e.viewState)}
+          mapboxAccessToken={TOKEN}
+          mapStyle="mapbox://styles/mapbox/satellite-streets-v12"
+          style={{ width: '100%', height: '100%' }}
+          attributionControl={false}
+        />
+      </div>
+
+      {/* ── UI layer ── */}
+      <div className="zs-ui">
+
+        {/* ── HEADER ── */}
+        <header className="zs-header">
+          {/* Left: logo + search */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                width: 30, height: 30,
+                background: '#f97316',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ color: '#fff', fontSize: 10, fontWeight: 700, letterSpacing: '0.05em' }}>ZS</span>
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#fff' }}>
+                ZeroStrike
+              </span>
+              <span style={{
+                fontSize: 8, fontWeight: 600, letterSpacing: '0.12em',
+                padding: '2px 6px',
+                background: 'rgba(249,115,22,0.12)',
+                border: '1px solid rgba(249,115,22,0.3)',
+                color: '#f97316',
+              }}>
+                MISSION CONTROL
+              </span>
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <span className="material-icons-outlined" style={{
+                position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
+                fontSize: 14, color: 'rgba(249,115,22,0.5)',
+              }}>search</span>
+              <input className="zs-search" placeholder="SEARCH MISSION PARAMS" type="text" />
+            </div>
+          </div>
+
+          {/* Right: telemetry */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 10, letterSpacing: '0.08em' }}>
+            {[
+              ['air',      '7 M/S NW'],
+              ['layers',   '243.4 HA'],
+              ['wb_sunny', '36°C'],
+            ].map(([icon, label]) => (
+              <div key={icon} style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'rgba(200,205,214,0.7)' }}>
+                <span className="material-icons-outlined" style={{ fontSize: 14, color: 'rgba(249,115,22,0.7)' }}>{icon}</span>
+                {label}
+              </div>
+            ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#f97316' }}>
+              <span className="material-icons-outlined" style={{ fontSize: 14 }}>schedule</span>
+              <LiveClock />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ width: 6, height: 6, background: '#22c55e', animation: 'zs-pulse 1.4s ease-in-out infinite' }} />
+              <span style={{ fontSize: 9, color: '#22c55e', letterSpacing: '0.12em' }}>ONLINE</span>
+            </div>
+          </div>
+        </header>
+
+        {/* ── INFO BAR ── */}
+        <div className="zs-infobar">
+          <div className="zs-infobar-inner">
+
+            {/* 1 — Empty slot */}
+            <div className="zs-col">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span className="material-icons-outlined" style={{ fontSize: 14, color: 'rgba(249,115,22,0.85)' }}>widgets</span>
+                <span className="zs-section-label" style={{ color: 'rgba(249,115,22,0.85)' }}>Empty Slot</span>
+                <span className="zs-badge zs-badge-empty" style={{ marginLeft: 'auto' }}>UNUSED</span>
+              </div>
+              <div style={{
+                flex: 1, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '1px dashed rgba(249,115,22,0.25)',
+              }}>
+                <span className="material-icons-outlined" style={{ fontSize: 20, color: 'rgba(249,115,22,0.5)' }}>add</span>
+              </div>
+            </div>
+
+            <div className="zs-col-sep" />
+
+            {/* 2 — Global view */}
+            <div className="zs-col">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span className="material-icons-outlined" style={{ fontSize: 14, color: '#f97316' }}>public</span>
+                <span className="zs-section-label" style={{ color: '#e2e8f0' }}>Global View</span>
+                <span className="zs-badge zs-badge-live" style={{ marginLeft: 'auto' }}>LIVE</span>
+              </div>
+              <div style={{ height: 64, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(249,115,22,0.3)', overflow: 'hidden' }}>
+                <svg viewBox="0 0 360 140" style={{ width: '100%', height: '100%' }} preserveAspectRatio="xMidYMid slice">
+                  <rect width="360" height="140" fill="transparent" />
+                  {/* Grid lines */}
+                  <line x1="0" y1="70" x2="360" y2="70" stroke="rgba(249,115,22,0.2)" strokeWidth="0.5" />
+                  <line x1="180" y1="0" x2="180" y2="140" stroke="rgba(249,115,22,0.2)" strokeWidth="0.5" />
+                  {/* Continents */}
+                  {[
+                    'M40,30 L80,25 L100,35 L105,50 L95,60 L80,65 L65,60 L50,55 L40,45Z',
+                    'M85,70 L95,68 L105,80 L100,100 L90,110 L80,105 L75,90 L80,75Z',
+                    'M160,25 L180,22 L190,28 L185,40 L175,42 L165,38 L160,30Z',
+                    'M165,50 L185,48 L195,55 L190,80 L180,95 L170,90 L160,75 L160,60Z',
+                    'M200,20 L260,18 L280,30 L275,50 L260,55 L240,50 L220,45 L200,40 L195,30Z',
+                    'M270,80 L295,78 L300,90 L290,100 L275,98 L268,90Z',
+                  ].map((d, i) => (
+                    <path key={i} d={d} fill="rgba(249,115,22,0.22)" stroke="rgba(249,115,22,0.7)" strokeWidth="0.8" />
+                  ))}
+                  <circle cx="75"  cy="45"  r="2.5" fill="#f97316" opacity="1" />
+                  <circle cx="175" cy="35"  r="2.5" fill="#f97316" opacity="1" />
+                  <circle cx="250" cy="38"  r="2"   fill="#22c55e" opacity="1" />
+                  <circle cx="285" cy="88"  r="2"   fill="#22c55e" opacity="1" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="zs-col-sep" />
+
+            {/* 3 — Key metrics */}
+            <div className="zs-col">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span className="material-icons-outlined" style={{ fontSize: 14, color: '#f97316' }}>analytics</span>
+                <span className="zs-section-label" style={{ color: '#e2e8f0' }}>Key Metrics</span>
+                <span style={{ marginLeft: 'auto', fontSize: 8, color: 'rgba(249,115,22,0.9)', letterSpacing: '0.1em' }}>REAL-TIME</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {[
+                  { label: 'ACTIVE THREATS',  val: '12',    color: '#ef4444', pts: '0,10 6,8 12,11 18,6 24,9 30,4 36,7 44,3' },
+                  { label: 'DRONES DEPLOYED', val: '8',     color: '#22c55e', pts: '0,12 6,10 12,8 18,9 24,6 30,5 36,4 44,2' },
+                  { label: 'AREA MONITORED',  val: '243 ha',color: '#f97316', pts: '0,7 6,6 12,7 18,5 24,6 30,4 36,5 44,3' },
+                  { label: 'AVG RESPONSE',    val: '4.2 m', color: '#facc15', pts: '0,4 6,6 12,5 18,8 24,6 30,7 36,5 44,6' },
+                ].map(({ label, val, color, pts }) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 9, color: 'rgba(200,205,214,0.8)', letterSpacing: '0.08em' }}>{label}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color }}>{val}</span>
+                      <Spark points={pts} stroke={color} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="zs-col-sep" />
+
+            {/* 4 — CCTV feed */}
+            <div className="zs-col">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span className="material-icons-outlined" style={{ fontSize: 14, color: '#f97316' }}>videocam</span>
+                <span className="zs-section-label" style={{ color: '#e2e8f0' }}>Live Feed</span>
+                <span className="zs-badge zs-badge-rec zs-pulse" style={{ marginLeft: 'auto' }}>● REC</span>
+              </div>
+              <div className="zs-cctv" style={{ height: 64, background: '#000', border: '1px solid rgba(249,115,22,0.35)' }}>
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0f0f0f 100%)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span className="material-icons-outlined" style={{ fontSize: 24, color: 'rgba(249,115,22,0.35)' }}>videocam</span>
+                  {/* Scanlines */}
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(249,115,22,0.04) 2px, rgba(249,115,22,0.04) 4px)',
+                  }} />
+                  {/* Corner brackets */}
+                  {[
+                    { top: 4, left: 4, borderTop: '1.5px solid rgba(249,115,22,0.85)', borderLeft: '1.5px solid rgba(249,115,22,0.85)' },
+                    { top: 4, right: 4, borderTop: '1.5px solid rgba(249,115,22,0.85)', borderRight: '1.5px solid rgba(249,115,22,0.85)' },
+                    { bottom: 4, left: 4, borderBottom: '1.5px solid rgba(249,115,22,0.85)', borderLeft: '1.5px solid rgba(249,115,22,0.85)' },
+                    { bottom: 4, right: 4, borderBottom: '1.5px solid rgba(249,115,22,0.85)', borderRight: '1.5px solid rgba(249,115,22,0.85)' },
+                  ].map((s, i) => (
+                    <div key={i} style={{ position: 'absolute', width: 8, height: 8, ...s }} />
+                  ))}
+                  <div style={{ position: 'absolute', bottom: 4, left: 6, fontSize: 7, color: 'rgba(249,115,22,0.75)', letterSpacing: '0.06em' }}>
+                    <LiveClock /> — CAM-04
+                  </div>
+                  <div style={{ position: 'absolute', top: 4, right: 6, fontSize: 7, color: 'rgba(239,68,68,0.9)', letterSpacing: '0.1em' }}>REC</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* 5 — Drone status */}
+          <div className="zs-drone-col">
+            <div className="zs-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              {/* Hatch pattern */}
+              <div style={{
+                position: 'absolute', inset: 0, opacity: 0.14,
+                background: 'repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(249,115,22,0.8) 4px, rgba(249,115,22,0.8) 5px)',
+              }} />
+              <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px 8px 4px' }}>
+                <img
+                  alt="ZeroStrike Drone"
+                  style={{ width: '100%', height: 70, objectFit: 'contain', filter: 'drop-shadow(0 4px 20px rgba(249,115,22,0.4)) brightness(1.3) contrast(1.1)' }}
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTgjcMSJQtq9nd5l9WZyDzr4LSx8-AJPoGmEMdqTgDrIcZKRc1PeuVWtGhD1cvtrOKMXtPEhF6XizW-2Ykq5T9tczGmTgzp05RQgeT6F1YGJSjEHyHqmRN-tBMknUMU8tRCaR1epHTIa772GDs5A2RVzU99yojpKcR68CQyG8XFSQSdzYdXgMXEEio9aC6xhzODE7wmAQVcEMwHOdTchjKTrfOyLrd1yN7oUcC63qqzcTpBGBjlhMHkhDMa-kOntzJINfGActZX0VC"
+                />
+              </div>
+              <div style={{
+                position: 'relative', zIndex: 1,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '6px 10px',
+                background: 'rgba(0,0,0,0.5)',
+                borderTop: '1px solid rgba(249,115,22,0.35)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span className="material-icons-outlined" style={{ fontSize: 12, color: '#22c55e' }}>battery_charging_full</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>4364<span style={{ color: 'rgba(200,205,214,0.4)', fontWeight: 400 }}>/4666 mAh</span></span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span className="material-icons-outlined" style={{ fontSize: 12, color: '#60a5fa' }}>thermostat</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>0<span style={{ color: 'rgba(200,205,214,0.4)', fontWeight: 400 }}>°C</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── MAIN ROW ── */}
+        <div className="zs-main">
+
+          {/* Map pass-through area — pointer-events none so scroll/zoom reach Mapbox */}
+          <div className="zs-map-section" style={{ pointerEvents: 'none' }}>
+            {/* Grid + vignette over the map */}
+            <div className="zs-map-grid" />
+            <div className="zs-map-vignette" />
+
+            {/* Left toolbar */}
+            <div className="zs-toolbar" style={{ pointerEvents: 'auto' }}>
+              {['near_me', 'grid_view', 'map', 'eco'].map((icon, i) => (
+                <button key={icon} className={`zs-tb-btn${i === 1 ? ' zs-active' : ''}`}>
+                  <span className="material-icons-outlined" style={{ fontSize: 16 }}>{icon}</span>
+                </button>
+              ))}
+              <div className="zs-tb-sep" />
+              <button className="zs-tb-btn">
+                <span className="material-icons-outlined" style={{ fontSize: 16 }}>settings</span>
+              </button>
+            </div>
+
+            {/* Top-left: overview label */}
+            <div className="zs-map-label zs-map-label-top" style={{ pointerEvents: 'none' }}>
+              <div style={{ width: 5, height: 5, background: '#22c55e', animation: 'zs-pulse 1.4s ease-in-out infinite' }} />
+              Mission Map Active
+            </div>
+
+            {/* Coordinate readout — bottom left */}
+            <div style={{
+              position: 'absolute', bottom: 10, left: 58, zIndex: 20, pointerEvents: 'none',
+              background: 'rgba(5,5,5,0.85)', border: '1px solid rgba(249,115,22,0.16)',
+              padding: '6px 10px',
+              display: 'flex', flexDirection: 'column', gap: 3,
+            }}>
+              {[
+                ['LAT', viewState.latitude.toFixed(5) + '°'],
+                ['LON', viewState.longitude.toFixed(5) + '°'],
+                ['ZOOM', viewState.zoom.toFixed(1)],
+              ].map(([label, val]) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                  <span style={{ fontSize: 8, color: 'rgba(249,115,22,0.55)', letterSpacing: '0.12em', minWidth: 32 }}>{label}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: '#c8cdd6', letterSpacing: '0.04em' }}>{val}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom-right map controls */}
+            <div className="zs-map-label zs-map-label-bottom" style={{ pointerEvents: 'auto' }}>
+              {[['open_with', 'PAN'], ['crop_free', 'ZOOM'], ['lock', 'LOCK']].map(([icon, label]) => (
+                <button key={label} className="zs-label-btn" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span className="material-icons-outlined" style={{ fontSize: 12 }}>{icon}</span>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Agent Activity Sidebar ── */}
+          <div className="zs-sidebar">
+
+            {/* Header */}
+            <div className="zs-sidebar-head">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  width: 20, height: 20,
+                  background: 'rgba(249,115,22,0.15)',
+                  border: '1px solid rgba(249,115,22,0.35)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span className="material-icons-outlined" style={{ fontSize: 12, color: '#f97316' }}>psychology</span>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff' }}>
+                    Agent Activity
+                  </div>
+                  <div style={{ fontSize: 8, color: 'rgba(200,205,214,0.35)', letterSpacing: '0.1em', marginTop: 1 }}>
+                    AUTONOMOUS DECISION STREAM
+                  </div>
+                </div>
+                <span className="zs-badge zs-badge-live" style={{ marginLeft: 'auto' }}>LIVE</span>
+              </div>
+            </div>
+
+            {/* Feed */}
+            <div className="zs-sidebar-feed" style={{ padding: '6px 0' }}>
+              {entries.map((entry, i) => (
+                <div key={`${entry.time}-${i}`} className="zs-entry">
+                  <span className="material-icons-outlined" style={{ fontSize: 13, color: entry.color, flexShrink: 0, marginTop: 1 }}>
+                    {entry.icon}
+                  </span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 10, color: 'rgba(200,205,214,0.85)', lineHeight: 1.45 }}>{entry.msg}</div>
+                    <div style={{ fontSize: 8, color: 'rgba(200,205,214,0.3)', marginTop: 2, letterSpacing: '0.06em' }}>{entry.time}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Command input */}
+            <div className="zs-sidebar-input">
+              <span className="material-icons-outlined" style={{ fontSize: 13, color: 'rgba(249,115,22,0.4)' }}>terminal</span>
+              <input
+                style={{
+                  flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                  fontSize: 10, color: '#c8cdd6', fontFamily: 'JetBrains Mono, monospace',
+                  letterSpacing: '0.04em',
+                }}
+                placeholder="SEND COMMAND TO AGENT..."
+              />
+              <button style={{ background: 'none', border: 'none', padding: 0, color: 'rgba(249,115,22,0.5)', transition: 'color 0.15s' }}>
+                <span className="material-icons-outlined" style={{ fontSize: 14 }}>send</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── FOOTER ── */}
+        <footer className="zs-footer">
+          <div style={{ display: 'flex', gap: 24 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#22c55e' }}>
+              <div style={{ width: 5, height: 5, background: '#22c55e', animation: 'zs-pulse 1.4s ease-in-out infinite' }} />
+              System Link: Stable
+            </span>
+            <span style={{ color: 'rgba(200,205,214,0.35)' }}>GPS: 14 Satellites · RTK Fixed</span>
+            <span style={{ color: 'rgba(200,205,214,0.35)' }}>Proj: Mercator · WGS84</span>
+          </div>
+          <div style={{ display: 'flex', gap: 24 }}>
+            <span style={{ color: 'rgba(200,205,214,0.35)' }}>Telemetry: 100ms</span>
+            <span style={{ color: '#f97316', fontWeight: 600 }}>Admin: MF-CONTROLLER-ALPHA</span>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+  );
+}
