@@ -271,6 +271,41 @@
   transform: translateY(0) scale(0.98);
 }
 
+.landing-cta-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.landing-cta-secondary {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--cyan);
+  background: transparent;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 17px 40px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  display: inline-block;
+}
+
+.landing-cta-secondary:hover {
+  border-color: var(--cyan);
+  background: rgba(56, 189, 248, 0.08);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.2);
+  transform: translateY(-2px);
+}
+
+.landing-cta-secondary:active {
+  transform: translateY(0);
+}
+
 /* ─── Stats Row ─────────────────────────────────────────────────────── */
 .landing-stats {
   display: flex;

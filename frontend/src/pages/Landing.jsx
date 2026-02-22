@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Points, PointMaterial, Stars } from '@react-three/drei';
 import * as THREE from 'three';
@@ -465,9 +466,14 @@ export default function Landing() {
               We prevent wildfires by stopping dry lightning strikes with a prediction model and agent orchestration layer that deploys autonomous cloud seeding drones.
             </p>
 
-            <button className="landing-cta" onClick={handleEnter}>
-              TRY THE DEMO
-            </button>
+            <div className="landing-cta-row">
+              <button className="landing-cta" onClick={handleEnter}>
+                TRY THE DEMO
+              </button>
+              <Link to="/case-study" className="landing-cta-secondary">
+                VIEW CASE STUDY
+              </Link>
+            </div>
           </div>
 
           {/* Stats */}
