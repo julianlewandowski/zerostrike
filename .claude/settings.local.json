@@ -10,7 +10,8 @@
       "Bash(git log:*)",
       "Bash(echo:*)",
       "Bash(pkill:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(grep:*)"
     ]
   }
 }
