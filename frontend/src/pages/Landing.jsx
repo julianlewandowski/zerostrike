@@ -456,23 +456,35 @@ export default function Landing() {
         {/* ── Hero ──────────────────────────────────────────────── */}
         <section className="landing-hero">
           <div className="landing-hero-content">
-            <div className="landing-eyebrow">stopping dry lightning strikes</div>
+            <div className="landing-eyebrow">stopping lightning to prevent dangerous forest fires</div>
 
             <h1 className="landing-wordmark">ZEROSTRIKE</h1>
 
-            <div className="landing-tagline">the Palantir for wildfires</div>
+            <div className="landing-tagline">Palantir for wildfires</div>
 
             <p className="landing-desc">
               we prevent wildfires by stopping dry lightning strikes with a prediction model and agent orchestration layer that deploys autonomous cloud seeding drones.
             </p>
 
             <div className="landing-cta-row">
-              <button className="landing-cta" onClick={handleEnter}>
-                TRY THE DEMO
-              </button>
-              <Link to="/case-study" className="landing-cta-secondary">
-                VIEW CASE STUDY
-              </Link>
+              <a 
+                href="https://www.youtube.com/watch?v=CCgxti4Cq6c" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="landing-cta"
+                style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}
+              >
+                WATCH THE DEMO
+              </a>
+              <a 
+                href="https://devpost.com/software/zerostrike" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="landing-cta-secondary"
+                style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}
+              >
+                VIEW DEVPOST
+              </a>
             </div>
           </div>
 
@@ -498,10 +510,60 @@ export default function Landing() {
           */}
         </section>
 
+        {/* ── Demo Video ────────────────────────────────────────── */}
+        <section className="landing-video-section">
+          <h2 className="landing-video-subheading">see what we've built :)</h2>
+          <div className="video-container">
+            <iframe 
+              width="100%" 
+              height="100%" 
+              src="https://www.youtube.com/embed/CCgxti4Cq6c" 
+              title="ZeroStrike Demo" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+            ></iframe>
+          </div>
+        </section>
+
         {/* ── New Sections ──────────────────────────────────────── */}
         <TheProblem />
         <TheSolution />
         <HowItWorks />
+
+        {/* ── Demo Explanation ──────────────────────────────────── */}
+        <section style={{
+          width: '100%',
+          background: '#020408',
+          padding: '80px 0',
+          position: 'relative',
+          zIndex: 1,
+          borderTop: '1px solid rgba(255, 255, 255, 0.05)'
+        }}>
+          <div style={{
+            padding: '0 40px',
+            textAlign: 'center',
+            maxWidth: '600px',
+            margin: '0 auto',
+            color: 'rgba(255, 255, 255, 0.5)',
+            fontSize: '12px',
+            fontFamily: 'var(--font-mono)',
+            lineHeight: '1.6'
+          }}>
+            <div style={{ 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.1em', 
+              marginBottom: '12px',
+              color: 'rgba(56, 189, 248, 0.6)'
+            }}>
+              where's our demo?
+            </div>
+            <p>
+              due to an overwhelming increase in user traffic following our HackEurope 2026 win, and the requirement for specially set up drone hardware to fully experience the demo, we have temporarily taken the live demo offline. please watch the video walkthrough above to see what we built, or reach out to us if you'd like to chat :)
+            </p>
+          </div>
+        </section>
+
         <AboutUs />
 
         {/* ── Footer ────────────────────────────────────────────── */}

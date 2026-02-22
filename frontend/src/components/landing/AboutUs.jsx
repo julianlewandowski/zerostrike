@@ -68,7 +68,7 @@ const AboutUs = () => {
               <Github size={20} />
               <span className="font-mono text-sm">View Source</span>
             </a>
-            <a href="#devpost" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+            <a href="https://devpost.com/software/zerostrike" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
               <ExternalLink size={20} />
               <span className="font-mono text-sm">Devpost</span>
             </a>

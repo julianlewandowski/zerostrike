@@ -806,9 +806,7 @@
 .custom-cursor-ring .corner-tl { top: -1px; left: -1px; border-width: 1px 0 0 1px; }
 .custom-cursor-ring .corner-tr { top: -1px; right: -1px; border-width: 1px 1px 0 0; }
 .custom-cursor-ring .corner-bl { bottom: -1px; left: -1px; border-width: 0 0 1px 1px; }
-.custom-cursor-ring .corner-br { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
-
-.custom-cursor-ring.hover .corner-tl,
+.custom-cursor-ring .corner-br { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }.custom-cursor-ring.hover .corner-tl,
 .custom-cursor-ring.hover .corner-tr,
 .custom-cursor-ring.hover .corner-bl,
 .custom-cursor-ring.hover .corner-br {
