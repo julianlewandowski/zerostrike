@@ -213,7 +213,7 @@ const TacticalGrid = () => {
   );
 };
 
-const Globe = () => {
+const Globe = ({ isMobile }) => {
   const groupRef = useRef();
   const meshRef = useRef();
   
@@ -347,9 +347,19 @@ const Globe = () => {
       const t = scrollY * 0.0015;
       
       // Move globe
-      const targetX = 2.5 + Math.sin(t) * 0.5;
-      const targetY = Math.cos(t * 0.7) * 0.2;
-      const targetZ = -Math.sin(t * 0.5) * 0.3; 
+      let targetX, targetY, targetZ;
+
+      if (isMobile) {
+        // Mobile: Center and move up
+        targetX = 0;
+        targetY = 1.2; 
+        targetZ = -1;
+      } else {
+        // Desktop: Right side
+        targetX = 2.5 + Math.sin(t) * 0.5;
+        targetY = Math.cos(t * 0.7) * 0.2;
+        targetZ = -Math.sin(t * 0.5) * 0.3; 
+      }
       
       const scale = 1 + Math.sin(state.clock.elapsedTime * 0.5) * 0.02;
       
@@ -396,10 +406,19 @@ const Globe = () => {
 import TheProblem from '../components/landing/TheProblem';
 import TheSolution from '../components/landing/TheSolution';
 import HowItWorks from '../components/landing/HowItWorks';
+import HowWeBuiltIt from '../components/landing/HowWeBuiltIt';
 import AboutUs from '../components/landing/AboutUs';
 
 export default function Landing() {
   const [booting, setBooting] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     // Enable window scrolling for the landing page
@@ -446,9 +465,9 @@ export default function Landing() {
         }}>
           <Canvas camera={{ position: [0, 0, 5.5], fov: 45 }}>
             <ambientLight intensity={0.5} />
-            <Globe />
+            <Globe isMobile={isMobile} />
             <DroneSwarm />
-            <TacticalGrid />
+            {!isMobile && <TacticalGrid />}
             <Stars radius={100} depth={50} count={2000} factor={4} saturation={0} fade speed={0.5} />
           </Canvas>
         </div>
@@ -530,6 +549,7 @@ export default function Landing() {
         <TheProblem />
         <TheSolution />
         <HowItWorks />
+        <HowWeBuiltIt />
 
         {/* ── Demo Explanation ──────────────────────────────────── */}
         <section style={{

@@ -42,7 +42,7 @@ const AboutUs = () => {
             viewport={{ once: true }}
             className="text-4xl md:text-5xl font-display font-bold text-white mb-6"
           >
-            built in 24 hours
+            built in 20 hours
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}

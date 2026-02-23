@@ -56,13 +56,29 @@ const HowItWorks = () => {
 
             <div className="space-y-2">
               <Step number="01" title="satellite + weather + terrain data" sub="ingestion layer" />
-              <Step number="02" title="grid scoring engine" sub="fuel × atmospheric × consequence" />
-              <Step number="03" title="storm tracking & projection" sub="6-hour horizon" />
-              <Step number="04" title="collision detection" sub="storm paths × high-risk zones" />
-              <Step number="05" title="priority queue" sub="ranked threat zones" />
-              <Step number="06" title="fleet optimizer" sub="match drones to threats in <3 sec" />
-              <Step number="07" title="drone dispatch" sub="intercept & neutralize" isLast />
+              <Step number="02" title="grid scoring engine" sub="fire fuel × atmospheric × economic consequence x proximity to civilisation -> highest risk areas determined" />
+              <Step number="03" title="storm tracking & projection" sub="tracking storm cell projections based on real time weather data" />
+              <Step number="04" title="prediction model" sub="identifies highest priority areas for intervention" />
+              <Step number="05" title="claude agents analyse" sub="we feed all the data into claude agents that analyse the situation. they have context from the human operator overseeing the area of the fires." />
+              <Step number="06" title="claude agents dispatch" sub="the agents decide which drones to dispatch and to where" />
+              <Step number="07" title="drone waypoints" sub="claude agents send waypoints to the drones" />
+              <Step number="08" title="dji drone flies" sub="we built a middleman android app that passes the waypoints into the drone computer" />
+              <Step number="09" title="chemical dispatch" sub="the drone flies to the destination and dispatches cloud-seeding chemicals to create rain clouds" />
+              <Step number="10" title="and boom" sub="we've drastically reduced the risk of a fire starting via dry lightning in a dangerous area. we stop lightning to prevent wildfires." isLast />
             </div>
+
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="mb-12"
+            >
+              <p className="text-lg text-slate-400 leading-relaxed">
+                and yes, we know that some wildfires are actually beneficial for the environment and ecosystem. that's why we put 
+                heavy weight on the danger the fire poses to humanity and the risk of it spreading further than expected in our 
+                prediction model.
+              </p>
+            </motion.div>
           </div>
 
           {/* Right: Visual Representation */}

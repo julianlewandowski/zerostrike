@@ -139,7 +139,7 @@ const TheProblem = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           
           {/* Left Content */}
-          <div ref={ref}>
+          <div ref={ref} className="bg-black/80 backdrop-blur-md p-6 rounded-2xl border border-white/10 lg:bg-transparent lg:p-0 lg:border-none lg:backdrop-blur-none">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
