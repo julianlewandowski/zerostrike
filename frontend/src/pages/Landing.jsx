@@ -479,7 +479,7 @@ export default function Landing() {
 
             <h1 className="landing-wordmark">ZEROSTRIKE</h1>
 
-            <div className="landing-tagline">Palantir for wildfires</div>
+            <div className="landing-tagline">Forecast strikes. Prevent wildfires.</div>
 
             <p className="landing-desc">
               we prevent wildfires by stopping dry lightning strikes with a prediction model and agent orchestration layer that deploys autonomous cloud seeding drones.
